@@ -39,12 +39,12 @@ class Assembler:
         self.instructions = {
             'add'  : { 'code':0 , 'parts':'orr' },
             'addi' : { 'code':1 , 'parts':'ori' },
-            'load' : { 'code':2 , 'parts':'orri' },
-            'store': { 'code':3 , 'parts':'orri' },
-            'sub'  : { 'code':4 , 'parts':'orr'},
-            'copy' : { 'code':5 , 'parts':'orr' },
-            'light': { 'code':6 , 'parts':'ori' },
-            'zj'   : { 'code':7 , 'parts':'orj' },
+            'sub'  : { 'code':2 , 'parts':'orr'},
+            'copy' : { 'code':3 , 'parts':'orr' },
+            'zj'   : { 'code':4 , 'parts':'orj' },
+            'load' : { 'code':5 , 'parts':'orr' },
+            'store': { 'code':6 , 'parts':'orr' },
+            'light': { 'code':7 , 'parts':'ori' },
         }
         self.field_size = {
             'o': 3,
