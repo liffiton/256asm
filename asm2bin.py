@@ -1,4 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+"""
+CS256 ISA Assembler: Command-line interface
+Author: Mark Liffiton
+"""
+
 import os
 import sys
 from assembler import Assembler, AssemblerException

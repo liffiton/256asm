@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+CS256 ISA Assembler: Web interface
+Author: Mark Liffiton
+"""
 
 import json
 import os

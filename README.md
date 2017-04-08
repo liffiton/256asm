@@ -1,6 +1,6 @@
 # 256asm
 
-256asm is an assembler for the student-designed ISAs from the CS 256 (Computer Organization and Architecture) course at Illinois Wesleyan University.  Each year, students design a new ISA from scratch (though heavily influenced by MIPS, which they learn earlier in the semester), design a datapath for it, and implement their CPU both in [Logisim](http://www.cburch.com/logisim/) and on physical breadboards.
+256asm is an assembler for the student-designed ISAs from  CS 256 (Computer Organization and Architecture) at Illinois Wesleyan University.  Each year, students design a new ISA from scratch (though heavily influenced by MIPS, which they learn earlier in the semester), design a datapath for it, and implement their CPU both in [Logisim](http://www.cburch.com/logisim/) and on physical breadboards.
 
 256asm was created to help students produce machine code to run on their CPU.  It is flexible and configurable, allowing the one codebase to work for each successive ISA with minimal if any changes (again, this works given that each ISA has a similar "lineage" given the MIPS influence).  It can handle ISAs with varying instruction widths, operand counts, field sizes, etc., and branch and jump instructions can be created with either offset or absolute jump address immediate values.
 
@@ -12,15 +12,15 @@ Every run requires a config file specifying the details of an ISA.  See the incl
 
 To run the command-line assembler:
 
-    python asm2bin.py FILE.conf FILE.asm
+    ./asm2bin.py FILE.conf FILE.asm
 
 That will produce ``FILE.0.bin`` and ``FILE.1.bin`` with the low- and high-bytes of the instructions, respectively.  Alternatively, specify output filenames directly with:
 
-    python asm2bin.py FILE.conf FILE.asm FILEOUT0 FILEOUT1
+    ./asm2bin.py FILE.conf FILE.asm FILEOUT0 FILEOUT1
 
 To serve the web interface:
 
-    python asmweb.py FILE.conf
+    ./asmweb.py FILE.conf
 
 The interface should then be accessible via port 8080.
 

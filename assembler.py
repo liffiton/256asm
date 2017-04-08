@@ -1,5 +1,5 @@
 """
-SAM ISA Assembler  (CS256-S17)
+CS256 ISA Assembler
 Author: Mark Liffiton
 """
 import collections
@@ -289,7 +289,7 @@ class Assembler:
         return ret
 
     def assemble_file(self, filename, fileout0="", fileout1=""):
-        """Fully assemble a file containing SAM ISA assembly code."""
+        """Fully assemble a file containing CS256 ISA assembly code."""
         self.report_inf("Assembling", filename)
         f = open(filename)
         lines = f.readlines()
