@@ -1,7 +1,9 @@
 """
-DYEL ISA Assembler  (CS256-S16)
+SAM ISA Assembler  (CS256-S17)
 Author: Mark Liffiton
 """
+import collections
+import ConfigParser
 import re
 import struct
 import sys
@@ -23,39 +25,30 @@ class AssemblerException(Exception):
 
 
 class Assembler:
-    """Assembles DYEL ISA assembly code into DYEL ISA
-       machine code.  See DYEL ISA design wiki for
-       ISA details."""
+    """Assembles CS256 assembly code into machine code following definitions
+    given in the specified config file."""
 
-    def __init__(self, info_callback=None):
-        # Configuration; modify for new ISA
-        # o = opcode
-        # r = register
-        # f = function code
-        # i = immediate
-        # l = label [as a relative offset]
-        # j = label [as an absolute address]
-        # x = unused (fill w/ 0 bits -- requires field_size set below, if used)
-        self.instructions = {
-            'add'  : { 'code':0 , 'parts':'orr' },
-            'addi' : { 'code':1 , 'parts':'ori' },
-            'sub'  : { 'code':2 , 'parts':'orr'},
-            'copy' : { 'code':3 , 'parts':'orr' },
-            'zj'   : { 'code':4 , 'parts':'orj' },
-            'load' : { 'code':5 , 'parts':'orr' },
-            'store': { 'code':6 , 'parts':'orr' },
-            'light': { 'code':7 , 'parts':'ori' },
-        }
-        self.field_size = {
-            'o': 3,
-            'r': 3,
-        }
-        self.inst_size = 16   # bit length of one instruction
-        self.max_reg = 7      # highest register value
-        self.special_regs = {
-            '$zero'  : 0,
-            '$input' : 7,
-        }
+    def __init__(self, configfile, info_callback=None):
+        config = ConfigParser.SafeConfigParser()
+        config.read(configfile)
+
+        self.name = config.get('general', 'name')
+        self.inst_size = config.getint('general', 'inst_size')
+        self.max_reg = config.getint('general', 'max_reg')
+        self.reg_prefix = config.get('general', 'reg_prefix')
+
+        self.special_regs = \
+            {x: int(y) for x, y in config.items('special_regs')}
+
+        self.field_sizes = \
+            {x: int(y) for x, y in config.items('field_sizes')}
+
+        self.instructions = collections.defaultdict(dict)
+        for inst, opcode in config.items('instruction_opcodes'):
+            self.instructions[inst]['opcode'] = int(opcode)
+        for inst, parts in config.items('instruction_parts'):
+            self.instructions[inst]['parts'] = parts
+
         self.report_commas = True
 
         self.palette = [
@@ -67,32 +60,36 @@ class Assembler:
         ]
 
         # create sizes and arg counts for each instruction
-        for op_info in self.instructions.values():
+        # modifies instruction dictionaries within self.instructions
+        for inst_info in self.instructions.values():
             # figure out number of required arguments to instruction
             # (number of parts, not counting opcode(s) or function code(s) or 'x' space)
-            parts = op_info['parts']
-            op_info['args'] = len(parts) - parts.count('o') - parts.count('f') - parts.count('x')
+            parts = inst_info['parts']
+            inst_info['args'] = len(parts) - parts.count('o') - parts.count('f') - parts.count('x')
 
             # figure out sizes (for shift amounts)
             sizes = []
             rem = self.inst_size  # remaining bits
-            for c in op_info['parts']:
-                if c in self.field_size:
-                    sizes.append(self.field_size[c])
-                    rem -= self.field_size[c]
+            for c in inst_info['parts']:
+                if c in self.field_sizes:
+                    sizes.append(self.field_sizes[c])
+                    rem -= self.field_sizes[c]
             sizes.append(rem)  # immediate (or extra) gets all remaining bits
-            op_info['sizes'] = sizes
+            inst_info['sizes'] = sizes
 
         # Used internally
-        self.opcode_re = "(" + "|".join(self.instructions) + ")\s"
+        self.inst_regex = "(" + "|".join(self.instructions) + ")\s"
         self.labels = {}
         self.cur_inst = ""     # used for error reporting
 
         self.info_callback = info_callback
 
+    def register_info_callback(self, info_callback):
+        self.info_callback = info_callback
+
     def assemble_instruction(self, inst, pc):
         """Produce the binary encoding of one instruction."""
-        assert re.match(self.opcode_re, inst)
+        assert re.match(self.inst_regex, inst)
 
         self.cur_inst = inst
 
@@ -106,7 +103,7 @@ class Assembler:
         inst_parts = inst.split()
         op = inst_parts[0]
         args = inst_parts[1:]
-        op_info = self.instructions[op]
+        inst_info = self.instructions[op]
 
 #        # Swap parts[1] and parts[2] for any instruction w/ at least 2 registers
 #        # Instructions are written with dest first, but dest is second register field in instruction
@@ -132,15 +129,15 @@ class Assembler:
 #            parts[2] = data_r
 
         # check for the correct number of arguments
-        if op_info['args'] != len(args):
-            self.report_err("Incorrect number of arguments in instruction (expected %d, got %d)" % (op_info['args'], len(args)), inst)
+        if inst_info['args'] != len(args):
+            self.report_err("Incorrect number of arguments in instruction (expected %d, got %d)" % (inst_info['args'], len(args)), inst)
             sys.exit(2)
 
         # parse each part (get a numerical value for it)
         # and shift appropriate amount, summing each
         instruction = 0
-        parts = op_info['parts']
-        sizes = op_info['sizes']
+        parts = inst_info['parts']
+        sizes = inst_info['sizes']
         for i in range(len(parts)):
             c = parts[i]
             size = sizes[i]
@@ -149,9 +146,9 @@ class Assembler:
             # handle function codes
             if c in ['r', 'l', 'j', 'i']:
                 arg = args.pop(0)
-                val = self.parse_part(c, op_info, pc, arg)
+                val = self.parse_part(c, inst_info, pc, arg)
             else:
-                val = self.parse_part(c, op_info, pc)
+                val = self.parse_part(c, inst_info, pc)
 
             # check immediate or branch size
             if c in ['l', 'j', 'i']:
@@ -169,17 +166,17 @@ class Assembler:
 
         return instruction
 
-    def parse_part(self, type, op_info, pc, arg=None):
+    def parse_part(self, type, inst_info, pc, arg=None):
         """Parse one argument of an instruction (opcode, register,
         immediate, or label).
         """
         if type == 'o':
-            return op_info['code']
+            return inst_info['opcode']
         elif type == 'f':
-            return op_info['func']
+            return inst_info['func']
         elif type == 'r' and arg in self.special_regs:
             return self.special_regs[arg]
-        elif type == 'r' and re.match("^\$\d+$", arg):
+        elif type == 'r' and re.match("^%s\d+$" % re.escape(self.reg_prefix), arg):
             regindex = int(arg[1:])
             if regindex > self.max_reg:
                 self.report_err("Register out of range", regindex)
@@ -220,7 +217,7 @@ class Assembler:
                 # it's a comment or blank!
                 continue
 
-            if re.match(self.opcode_re, line):
+            if re.match(self.inst_regex, line):
                 # it's an instruction!
                 instructions.append(line)
             elif re.match("^[a-z][a-z0-9]*:$", line):
@@ -290,7 +287,7 @@ class Assembler:
         return ret
 
     def assemble_file(self, filename, fileout0="", fileout1=""):
-        """Fully assemble a file containing DYEL ISA assembly code."""
+        """Fully assemble a file containing SAM ISA assembly code."""
         self.report_inf("Assembling", filename)
         f = open(filename)
         lines = f.readlines()

@@ -5,19 +5,20 @@ from assembler import Assembler, AssemblerException
 
 
 def main():
-    if len(sys.argv) < 2 or len(sys.argv) > 4:
-        print >> sys.stderr, "Usage: " + sys.argv[0] + " FILE FILEOUT0 FILEOUT1"
-        print >> sys.stderr, " -or-  " + sys.argv[0] + " FILE # will create FILE.0.bin and FILE.1.bin"
+    if len(sys.argv) < 3 or len(sys.argv) > 5:
+        print >> sys.stderr, "Usage: " + sys.argv[0] + " CONFIGFILE FILE.asm FILEOUT0 FILEOUT1"
+        print >> sys.stderr, " -or-  " + sys.argv[0] + " CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin"
         sys.exit(1)
 
-    filename = sys.argv[1]
+    configfile = sys.argv[1]
+    filename = sys.argv[2]
     if not os.path.exists(filename):
         print >> sys.stderr, "File not found: " + filename
         sys.exit(1)
 
-    if len(sys.argv) > 2:
-        fileout0 = sys.argv[2]
-        fileout1 = sys.argv[3]
+    if len(sys.argv) > 3:
+        fileout0 = sys.argv[3]
+        fileout1 = sys.argv[4]
     else:
         # produce .0.bin and .1.bin from the filename given
         # works well for drag-and-drop in Windows
@@ -32,7 +33,7 @@ def main():
         print "[%sm%s:[m %s" % (color, msg, data)
         print
 
-    a = Assembler(info_callback=printmsg)
+    a = Assembler(configfile, info_callback=printmsg)
     try:
         a.assemble_file(filename, fileout0, fileout1)
     except AssemblerException as e:

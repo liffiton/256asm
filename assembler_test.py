@@ -8,7 +8,7 @@ from assembler import Assembler
 
 class AssemblerTestCase(unittest.TestCase):
     def setUp(self):
-        self.Assembler = Assembler()
+        self.Assembler = Assembler('S17_SAM.conf')
 
     def tearDown(self):
         self.Assembler = None

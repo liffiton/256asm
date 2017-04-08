@@ -1,11 +1,24 @@
 #!/usr/bin/env python
 
-from assembler import Assembler, AssemblerException
-import web
 import json
+import os
+import sys
 import zipfile
 
-_NAME = "DYEL"
+from assembler import Assembler, AssemblerException
+import web
+
+
+# A bit of dependency injection
+#  Thanks: https://www.electricmonk.nl/log/2015/03/06/dependency-injection-in-web-py/
+# This seems overcomplicated...
+class Injector:
+    def __init__(self, assembler):
+        self.assembler = assembler
+
+    def __call__(self, handler):
+        web.ctx.assembler = self.assembler
+        return handler()
 
 urls = (
     '/assemble/', 'asm2bin',
@@ -16,15 +29,18 @@ urls = (
 
 class Main:
     def GET(self):
-        raise web.redirect("/static/index.html")
+        name = web.ctx.assembler.name
+        return web.template.render('templates/').index(name)
+        #raise web.redirect("/static/index.html")
 
 
 class download:
     def GET(self):
-        with zipfile.ZipFile('%s2bin.zip' % _NAME, 'w') as zip:
+        name = web.ctx.assembler.name
+        with zipfile.ZipFile('%s2bin.zip' % name, 'w') as zip:
             zip.write('asm2bin.py')
             zip.write('assembler.py')
-        return open('%s2bin.zip' % _NAME, 'rb').read()
+        return open('%s2bin.zip' % name, 'rb').read()
 
 
 class asm2bin:
@@ -40,7 +56,8 @@ class asm2bin:
         def getmsg(msgtuple):
             out['messages'].append(msgtuple)
 
-        a = Assembler(info_callback=getmsg)
+        a = web.ctx.assembler
+        a.register_info_callback(getmsg)
 
         try:
             (instructions, instructions_bin) = a.assemble_lines(lines)
@@ -63,5 +80,16 @@ class asm2bin:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print >> sys.stderr, "Usage: asmweb.py CONFIGFILE [IP]"
+        sys.exit(1)
+    configfile = sys.argv.pop(1)  # remove it because web.py uses argv
+    if not os.path.exists(configfile):
+        print >> sys.stderr, "File not found: " + configfile
+        print >> sys.stderr, "Usage: asmweb.py CONFIGFILE [IP]"
+        sys.exit(1)
+    assembler = Assembler(configfile)
+
     app = web.application(urls, globals())
+    app.add_processor(Injector(assembler))
     app.run()
