@@ -23,6 +23,7 @@ class Injector:
 urls = (
     '/assemble/', 'asm2bin',
     '/dl/.*', 'download',
+    '/sample.asm', 'sample',
     '/', 'Main',
 )
 
@@ -31,7 +32,12 @@ class Main:
     def GET(self):
         name = web.ctx.assembler.name
         return web.template.render('templates/').index(name)
-        #raise web.redirect("/static/index.html")
+
+
+class sample:
+    def GET(self):
+        samplefile = web.ctx.assembler.samplefile
+        return open(samplefile).read()
 
 
 class download:
@@ -40,6 +46,8 @@ class download:
         with zipfile.ZipFile('%s2bin.zip' % name, 'w') as zip:
             zip.write('asm2bin.py')
             zip.write('assembler.py')
+            zip.write(web.ctx.assembler.configfile)
+            zip.write(web.ctx.assembler.samplefile)
         return open('%s2bin.zip' % name, 'rb').read()
 
 

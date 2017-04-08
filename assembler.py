@@ -29,6 +29,7 @@ class Assembler:
     given in the specified config file."""
 
     def __init__(self, configfile, info_callback=None):
+        self.configfile = configfile
         config = ConfigParser.SafeConfigParser()
         config.read(configfile)
 
@@ -36,6 +37,7 @@ class Assembler:
         self.inst_size = config.getint('general', 'inst_size')
         self.max_reg = config.getint('general', 'max_reg')
         self.reg_prefix = config.get('general', 'reg_prefix')
+        self.samplefile = config.get('general', 'samplefile')
 
         self.special_regs = \
             {x: int(y) for x, y in config.items('special_regs')}
@@ -52,8 +54,8 @@ class Assembler:
         self.report_commas = True
 
         self.palette = [
-            '#7D994B',
-            '#A38248',
+            '#6D993B',
+            '#A37238',
             '#AC4548',
             '#6048A3',
             '#449599',

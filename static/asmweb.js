@@ -98,7 +98,7 @@ $('#asm').on('input propertychange', function() {
 $(function() {
     updatesaves();
     // load the sample
-    $.get('/static/sample.asm', function(data) {
+    $.get('/sample.asm', function(data) {
         $('#asm').val(data);
         // assemble it
         submitasm();
