@@ -8,6 +8,8 @@
 
 The assembler can be run via the command-line as ``asm2bin.py`` or via a simple web interface that assembles code and reports errors as the code is typed.  Both interfaces produce binary data split into high- and low-bytes that can be loaded into Logisim or into EEPROMs to run the code on the students' CPU.
 
+![asmweb screenshot](docs/asmweb_screenshot.png?raw=true)
+
 Every run requires a config file specifying the details of an ISA.  See the included ``*.conf`` files for examples.
 
 To run the command-line assembler:
