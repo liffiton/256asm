@@ -4,25 +4,25 @@
 
 256asm was created to help students produce machine code to run on their CPU.  It is flexible and configurable, allowing the one codebase to work for each successive ISA with minimal if any changes (again, this works given that each ISA has a similar "lineage" given the MIPS influence).  It can handle ISAs with varying instruction widths, operand counts, field sizes, etc., and branch and jump instructions can be created with either offset or absolute jump address immediate values.
 
-## Usage
-
-The assembler can be run via the command-line as ``asm2bin.py`` or via a simple web interface that assembles code and reports errors as the code is typed.  Both interfaces produce binary data split into high- and low-bytes that can be loaded into Logisim or into EEPROMs to run the code on the students' CPU.
+The assembler can be run via the command-line as ``asm2bin.py`` or via a simple web interface that assembles code and reports errors as the code is typed.  Both interfaces produce binary data split into low and high bytes that can be copied into Logisim or written into EEPROMs to run the code on the students' CPU.
 
 ![asmweb screenshot](docs/asmweb_screenshot.png?raw=true)
+
+## Usage
 
 Every run requires a config file specifying the details of an ISA.  See the included ``*.conf`` files for examples.
 
 To run the command-line assembler:
 
-    ./asm2bin.py FILE.conf FILE.asm
+    ./asm2bin.py CONFIGFILE FILE.asm
 
-That will produce ``FILE.0.bin`` and ``FILE.1.bin`` with the low- and high-bytes of the instructions, respectively.  Alternatively, specify output filenames directly with:
+That will produce ``FILE.0.bin`` and ``FILE.1.bin`` with the low and high bytes of the instructions, respectively.  Alternatively, specify output filenames directly with:
 
-    ./asm2bin.py FILE.conf FILE.asm FILEOUT0 FILEOUT1
+    ./asm2bin.py CONFIGFILE FILE.asm FILEOUT0 FILEOUT1
 
 To serve the web interface:
 
-    ./asmweb.py FILE.conf
+    ./asmweb.py CONFIGFILE
 
 The interface should then be accessible via port 8080.
 
