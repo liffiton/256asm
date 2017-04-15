@@ -22,7 +22,7 @@ function submitasm() {
             else {
                 $('#info').hide();
             }
-            $('#code').html(data['code']);
+            $('#machine_code').html(data['code']);
             $('#upper').html(data['upper']);
             $('#lower').html(data['lower']);
             $('#noerror').fadeTo("fast", 1.0);
