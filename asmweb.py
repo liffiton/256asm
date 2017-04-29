@@ -57,37 +57,31 @@ class download:
 
 class asm2bin:
     def POST(self):
-        data = web.data()
-        lines = data.split('\n')
-
-        web.header('Content-Type', 'application/json')
+        lines = web.data().split('\n')
 
         out = {}
         out['messages'] = []
 
-        def getmsg(msgtuple):
-            out['messages'].append(msgtuple)
-
         a = web.ctx.assembler
-        a.register_info_callback(getmsg)
+        a.register_info_callback(out['messages'].append)
 
         try:
             (instructions, instructions_bin) = a.assemble_lines(lines)
             out['code'] = a.prettyprint_assembly(instructions, instructions_bin, colorize=True)
 
-            upper = ""
-            lower = ""
+            upperbytes = []
+            lowerbytes = []
             for word in instructions_bin:
-                insthex = "%04x" % word
-                upper += " %s" % insthex[0:2]
-                lower += " %s" % insthex[2:4]
+                upperbytes.append(word / 256)
+                lowerbytes.append(word % 256)
 
-            out['upper'] = upper
-            out['lower'] = lower
+            out['upper'] = " ".join("%02x" % byte for byte in upperbytes)
+            out['lower'] = " ".join("%02x" % byte for byte in lowerbytes)
 
         except AssemblerException as e:
             out['error'] = (e.msg, e.data, e.inst)
 
+        web.header('Content-Type', 'application/json')
         return json.dumps(out)
 
 
