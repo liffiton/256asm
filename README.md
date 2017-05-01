@@ -28,13 +28,13 @@ The interface should then be accessible via port 8080.
 
 ## Dependencies
 
-The code currently runs on Python 2.
+The code is compatible with both Python 2.7 and 3.x.
 
-The web interface depends on [``web.py``](http://webpy.org/), which can be installed with pip by running:
+The web interface ``asmweb.py`` depends on [Bottle](https://bottlepy.org/), which can be installed with pip by running:
 
-    pip install web.py
+    pip install bottle
 
-The assembler itself and the command-line interface have no dependencies beyond the Python standard library.
+The assembler itself and the command-line interface ``asm2bin.py`` have no dependencies beyond the Python standard library.
 
 ## Caveats
 

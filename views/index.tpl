@@ -1,15 +1,14 @@
-$def with (name)
 <!DOCTYPE html>
 <html>
 <head>
-  <title>${name}web</title>
+  <title>{{name}}web</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <style type="text/css">
     #asm {
       width: 100%;
       height: 35em;
-      white-space: pre
+      white-space: pre;
       overflow: auto;
     }
     #machine_code {
@@ -25,10 +24,10 @@ $def with (name)
   <div class="container">
     <div class="page-header">
       <h1>
-        ${name}web
-        <small>Paste or type ${name} ISA code into the textarea to see the ${name} ISA assembler output.</small>
+        {{name}}web
+        <small>Paste or type {{name}} ISA code into the textarea to see the {{name}} ISA assembler output.</small>
       </h1>
-      <p>Download a command line version: <a href="/dl/${name}2bin.zip">${name}2bin</a></p>
+      <p>Download a command line version: <a href="/dl/{{name}}2bin.zip">{{name}}2bin</a></p>
     </div>
     <div class="row">
       <div class="col-md-6">
