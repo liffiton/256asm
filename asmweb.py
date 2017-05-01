@@ -4,6 +4,8 @@ CS256 ISA Assembler: Web interface
 Author: Mark Liffiton
 """
 
+from __future__ import print_function
+
 import json
 import os
 import sys
@@ -23,6 +25,7 @@ class Injector:
     def __call__(self, handler):
         web.ctx.assembler = self.assembler
         return handler()
+
 
 urls = (
     '/assemble/', 'asm2bin',
@@ -72,7 +75,7 @@ class asm2bin:
             upperbytes = []
             lowerbytes = []
             for word in instructions_bin:
-                upperbytes.append(word / 256)
+                upperbytes.append(word // 256)
                 lowerbytes.append(word % 256)
 
             out['upper'] = " ".join("%02x" % byte for byte in upperbytes)
@@ -87,12 +90,12 @@ class asm2bin:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print >> sys.stderr, "Usage: asmweb.py CONFIGFILE [IP]"
+        print("Usage: asmweb.py CONFIGFILE [IP]", file=sys.stderr)
         sys.exit(1)
     configfile = sys.argv.pop(1)  # remove it because web.py uses argv
     if not os.path.exists(configfile):
-        print >> sys.stderr, "File not found: " + configfile
-        print >> sys.stderr, "Usage: asmweb.py CONFIGFILE [IP]"
+        print("File not found: " + configfile, file=sys.stderr)
+        print("Usage: asmweb.py CONFIGFILE [IP]", file=sys.stderr)
         sys.exit(1)
     assembler = Assembler(configfile)
 

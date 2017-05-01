@@ -3,9 +3,8 @@ CS256 ISA Assembler
 Author: Mark Liffiton
 """
 import collections
-import ConfigParser
+import configparser
 import re
-import struct
 import sys
 
 
@@ -30,7 +29,7 @@ class Assembler:
 
     def __init__(self, configfile, info_callback=None):
         self.configfile = configfile
-        config = ConfigParser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         config.read(configfile)
 
         self.name = config.get('general', 'name')
@@ -291,33 +290,20 @@ class Assembler:
     def assemble_file(self, filename, fileout0="", fileout1=""):
         """Fully assemble a file containing CS256 ISA assembly code."""
         self.report_inf("Assembling", filename)
-        f = open(filename)
-        lines = f.readlines()
-        f.close()
+        with open(filename) as f:
+            lines = f.readlines()
 
         (instructions, instructions_bin) = self.assemble_lines(lines)
 
-        print self.prettyprint_assembly(instructions, instructions_bin)
+        print(self.prettyprint_assembly(instructions, instructions_bin))
 
-        # pack w/ "<" will be **little-endian** (low-order byte first)
-        # this makes sense for putting the low-order byte in .0.bin
-        # and it works well for display via hexdump's standard format (which reads
-        # big-endian and prints little-endian for some reason(?!), and thus
-        # it will be big-endian again when printed...  I must be missing something,
-        # but that's what I see.)
-        if fileout0 == "":
-            binfile = "".join([struct.pack("<H", inst) for inst in instructions_bin])
-            return binfile
-        else:
-            binfile0 = "".join([struct.pack("<H", inst)[0] for inst in instructions_bin])
-            binfile1 = "".join([struct.pack("<H", inst)[1] for inst in instructions_bin])
-            f0 = open(fileout0, "wb")
+        binfile0 = bytearray(word % 256 for word in instructions_bin)
+        binfile1 = bytearray(word // 256 for word in instructions_bin)
+        with open(fileout0, 'wb') as f0:
             f0.write(binfile0)
-            f0.close()
-            f1 = open(fileout1, "wb")
+        with open(fileout1, 'wb') as f1:
             f1.write(binfile1)
-            f1.close()
-            self.report_inf("Generated bin files", "%s and %s" % (fileout0, fileout1))
+        self.report_inf("Generated bin files", "%s and %s" % (fileout0, fileout1))
 
     def report_err(self, msg, data=""):
         raise AssemblerException(msg, data, self.cur_inst)
