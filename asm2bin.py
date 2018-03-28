@@ -1,10 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 CS256 ISA Assembler: Command-line interface
 Author: Mark Liffiton
 """
-
-from __future__ import print_function
 
 import os
 import sys
