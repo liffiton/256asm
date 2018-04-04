@@ -14,14 +14,20 @@ from bottle import post, request, route, run, static_file, template
 
 # Parse/check commandline arguments
 if len(sys.argv) < 2:
-    print("Usage: asmweb.py CONFIGFILE [IP]", file=sys.stderr)
+    print("Usage: asmweb.py CONFIGFILE [PORT]", file=sys.stderr)
     sys.exit(1)
-configfile = sys.argv.pop(1)  # remove it because web.py uses argv
+
+configfile = sys.argv[1]
 if not os.path.exists(configfile):
     print("File not found: %s" % configfile, file=sys.stderr)
-    print("Usage: asmweb.py CONFIGFILE [IP]", file=sys.stderr)
+    print("Usage: asmweb.py CONFIGFILE [PORT]", file=sys.stderr)
     sys.exit(1)
 assembler = Assembler(configfile)
+
+if len(sys.argv) > 2:
+    port = int(sys.argv[2])
+else:
+    port = 8080
 
 
 @route('/')
@@ -81,4 +87,4 @@ def assemble():
 
 
 # Launch the server for external access
-run(host='0.0.0.0')
+run(host='0.0.0.0', port=port)
