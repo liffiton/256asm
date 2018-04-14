@@ -54,6 +54,7 @@ def download(filename):
         zip.write('assembler.py')
         zip.write(assembler.configfile)
         zip.write(assembler.samplefile)
+        zip.write('README.md')
     return static_file(zipfilename, root='.', download=True)
 
 
