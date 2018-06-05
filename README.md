@@ -30,7 +30,7 @@ The interface should then be accessible via port 8080.
 
 The code is compatible with Python 3.x.
 
-The web interface ``asmweb.py`` depends on [Bottle](https://bottlepy.org/), which can be installed with pip by running:
+The web interface ``asmweb.py`` depends on [Bottle](https://bottlepy.org/), a version of which is included in this repository.  Or, the latest version can be installed with pip by running:
 
     pip install bottle
 
