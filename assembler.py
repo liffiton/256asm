@@ -79,7 +79,9 @@ class Assembler:
                 if c in self.field_sizes:
                     sizes.append(self.field_sizes[c])
                     rem -= self.field_sizes[c]
-            sizes.append(rem)  # immediate (or extra) gets all remaining bits
+            if rem:
+                sizes.append(rem)  # immediate (or extra) gets all remaining bits
+
             inst_info['sizes'] = sizes
 
         # Used internally
