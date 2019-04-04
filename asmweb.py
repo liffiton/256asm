@@ -19,7 +19,7 @@ if len(sys.argv) < 2:
 
 configfile = sys.argv[1]
 if not os.path.exists(configfile):
-    print("File not found: %s" % configfile, file=sys.stderr)
+    print("File not found: {}".format(configfile), file=sys.stderr)
     print("Usage: asmweb.py CONFIGFILE [PORT]", file=sys.stderr)
     sys.exit(1)
 assembler = Assembler(configfile)
@@ -47,7 +47,7 @@ def sample():
 
 @route('/dl/<filename>')
 def download(filename):
-    zipfilename = '%s2bin.zip' % assembler.name
+    zipfilename = '{}2bin.zip'.format(assembler.name)
     assert(filename == zipfilename)
     with zipfile.ZipFile(zipfilename, 'w') as zip:
         zip.write('asm2bin.py')
@@ -78,8 +78,8 @@ def assemble():
             upperbytes.append(word // 256)
             lowerbytes.append(word % 256)
 
-        out['upper'] = " ".join("%02x" % byte for byte in upperbytes)
-        out['lower'] = " ".join("%02x" % byte for byte in lowerbytes)
+        out['upper'] = " ".join("{:02x}".format(byte) for byte in upperbytes)
+        out['lower'] = " ".join("{:02x}".format(byte) for byte in lowerbytes)
 
     except AssemblerException as e:
         out['error'] = (e.msg, e.data, e.inst)

@@ -137,7 +137,10 @@ class Assembler:
 
         # check for the correct number of arguments
         if inst_info['args'] != len(args):
-            self.report_err("Incorrect number of arguments in instruction (expected %d, got %d)" % (inst_info['args'], len(args)), inst)
+            self.report_err(
+                "Incorrect number of arguments in instruction (expected {}, got {})".format(inst_info['args'], len(args)),
+                inst
+            )
             sys.exit(2)
 
         # parse each part (get a numerical value for it)
@@ -162,13 +165,13 @@ class Assembler:
                 if val >= 2**(size-1) or val < -2**(size-1):
                     self.report_err(
                         "Immediate/Label out of range",
-                        "%d-bit space, but |%d| > 2^%d" % (size, val, size-1)
+                        "{}-bit space, but |{}| > 2^{}".format(size, val, size-1)
                     )
                     sys.exit(2)
                 # fit negative values into given # of bits
                 val = val % 2**size
 
-            # print "Shifting: %d << %d" % (val, shamt)
+            # print "Shifting: {} << {}".format(val, shamt)
             instruction += val << shamt
 
         return instruction
@@ -253,7 +256,7 @@ class Assembler:
         linelabels = {line: label for (label, line) in self.labels.items()}
 
         ret = ""
-        ret += "  #: %s  %s  %s\n" % ("Instruction".ljust(20,' '), "Binary".ljust(20,' '), "Hex")
+        ret += "  #: {:<20}  {:<20}  {}\n".format("Instruction", "Binary", "Hex")
         ret += "-" * 55 + "\n"
         for i in range(len(instructions)):
             inststr = instructions[i]
@@ -262,9 +265,9 @@ class Assembler:
 
             if colorize:
                 for j in range(len(instparts)):
-                    instparts[j] = "<span style='color: %s'>%s</span>" \
-                        % (self.palette[j], instparts[j])
-            # Add spaces to pad to 20 chars.  (Can't use ljust because of added <span> chars.)
+                    instparts[j] = "<span style='color: {}'>{}</span>".format(self.palette[j], instparts[j])
+            # Add spaces to pad to 20 chars.
+            # (Can't use ljust because of added <span> chars.)
             inststr = " ".join(instparts) + (" " * (20 - len(inststr)))
 
             # rjust() adds leading 0s if needed.
@@ -278,18 +281,19 @@ class Assembler:
                 j += size
             if colorize:
                 for j in range(len(sizes)):
-                    instbinparts[j] = "<span style='color: %s'>%s</span>" \
-                        % (self.palette[j], instbinparts[j])
+                    instbinparts[j] = "<span style='color: {}'>{}</span>".format(self.palette[j], instbinparts[j])
             # Add spaces between and after all parts and padding to 20 chars,
             # accounting for bits of the instruction and spaces between parts.
+            # (Can't use ljust because of added <span> chars.)
             instbinstr = " ".join(instbinparts) + (" " * (20 - self.inst_size - (len(sizes)-1)))
 
-            insthex = "%04x" % instructions_bin[i]
+            insthex = "{:04x}".format(instructions_bin[i])
 
             if i in linelabels:
                 ret += linelabels[i] + ":\n"
 
-            ret += "%3d: %s  %s  %s\n" % (i, inststr, instbinstr, insthex)
+            # (Can't use format string justification because of added <span> chars.)
+            ret += "{:3}: {}  {}  {}\n".format(i, inststr, instbinstr, insthex)
 
         return ret
 
@@ -309,7 +313,7 @@ class Assembler:
             f0.write(binfile0)
         with open(fileout1, 'wb') as f1:
             f1.write(binfile1)
-        self.report_inf("Generated bin files", "%s and %s" % (fileout0, fileout1))
+        self.report_inf("Generated bin files", "{} and {}".format(fileout0, fileout1))
 
     def report_err(self, msg, data=""):
         raise AssemblerException(msg, data, self.cur_inst)

@@ -12,8 +12,8 @@ from assembler import Assembler, AssemblerException
 
 def main():
     if len(sys.argv) < 3 or len(sys.argv) > 5:
-        print("Usage: %s CONFIGFILE FILE.asm FILEOUT0 FILEOUT1" % sys.argv[0], file=sys.stderr)
-        print(" -or-  %s CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin" % sys.argv[0], file=sys.stderr)
+        print("Usage: {} CONFIGFILE FILE.asm FILEOUT0 FILEOUT1".format(sys.argv[0]), file=sys.stderr)
+        print(" -or-  {} CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin".format(sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
     configfile = sys.argv[1]
@@ -36,7 +36,7 @@ def main():
 
     def printmsg(msgtuple, color="0;36"):
         msg, data = msgtuple
-        print("[%sm%s:[m %s" % (color, msg, data))
+        print("[{}m{}:[m {}".format(color, msg, data))
         print()
 
     a = Assembler(configfile, info_callback=printmsg)
