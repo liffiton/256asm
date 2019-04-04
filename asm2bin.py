@@ -43,7 +43,7 @@ def main():
     try:
         a.assemble_file(filename, fileout0, fileout1)
     except AssemblerException as e:
-        printmsg( (e.msg, e.data), color="1;31" )
+        printmsg( (e.msg, e.data + "\n  In: " + e.inst), color="1;31" )
 
     # raw_input("Done.  Press enter to continue.")  # pause
 

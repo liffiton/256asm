@@ -19,7 +19,7 @@ class AssemblerException(Exception):
         if self.data:
             ret += ": " + str(self.data)
         if self.inst:
-            ret += "\n    " + self.inst
+            ret += "\n  In: " + self.inst
         return ret
 
 
@@ -50,6 +50,10 @@ class Assembler:
         for inst, parts in config.items('instruction_parts'):
             self.instructions[inst]['parts'] = parts
 
+        if 'instruction_funccodes' in config.sections():
+            for inst, funccode in config.items('instruction_funccodes'):
+                self.instructions[inst]['funccode'] = int(funccode)
+
         self.report_commas = True
 
         self.palette = [
@@ -79,7 +83,7 @@ class Assembler:
             inst_info['sizes'] = sizes
 
         # Used internally
-        self.inst_regex = "(" + "|".join(self.instructions) + ")\s"
+        self.inst_regex = r"({})\s".format("|".join(self.instructions))
         self.labels = {}
         self.cur_inst = ""     # used for error reporting
 
@@ -144,7 +148,7 @@ class Assembler:
             size = sizes[i]
             shamt = sum(sizes[i+1:])
 
-            # handle function codes
+            # r, l, j, and i have arguments, opcode and funccode do not
             if c in ['r', 'l', 'j', 'i']:
                 arg = args.pop(0)
                 val = self.parse_part(c, inst_info, pc, arg)
@@ -174,16 +178,16 @@ class Assembler:
         if type == 'o':
             return inst_info['opcode']
         elif type == 'f':
-            return inst_info['func']
+            return inst_info['funccode']
         elif type == 'r' and arg in self.special_regs:
             return self.special_regs[arg]
-        elif type == 'r' and re.match("^%s\d+$" % re.escape(self.reg_prefix), arg):
+        elif type == 'r' and re.match(r"^{}\d+$".format(re.escape(self.reg_prefix)), arg):
             regindex = int(arg[1:])
             if regindex > self.max_reg:
                 self.report_err("Register out of range", regindex)
                 sys.exit(2)
             return regindex
-        elif type == 'i' and re.match("^-?\d+$|^-?0x[a-fA-F0-9]+$|^-?0b[01]+$", arg):
+        elif type == 'i' and re.match(r"^-?\d+$|^-?0x[a-fA-F0-9]+$|^-?0b[01]+$", arg):
             return int(arg,0)
         elif type == 'j' and arg in self.labels:
             return self.labels[arg]
