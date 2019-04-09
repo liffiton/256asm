@@ -260,7 +260,7 @@ class Assembler:
         ret += "-" * 55 + "\n"
         for i in range(len(instructions)):
             inststr = instructions[i]
-            instparts = inststr.split(' ')
+            instparts = inststr.split()
             op = instparts[0]
 
             if colorize:
