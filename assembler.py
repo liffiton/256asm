@@ -197,8 +197,8 @@ class Assembler:
         elif type == 'j' and arg in self.labels:
             return self.labels[arg]
         elif type == 'l' and arg in self.labels:
-            # offset from pc+1, so store instruction count - (pc+1)
-            return self.labels[arg] - (pc+1)
+            # offset from pc, so store instruction count - pc
+            return self.labels[arg] - pc
         elif type == 'x':  # unused - fill w/ zero bits
             return 0
         else:
