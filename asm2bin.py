@@ -12,11 +12,22 @@ from assembler import Assembler, AssemblerException
 
 def main():
     if len(sys.argv) < 3 or len(sys.argv) > 5:
-        print("Usage: {} CONFIGFILE FILE.asm FILEOUT0 FILEOUT1".format(sys.argv[0]), file=sys.stderr)
-        print(" -or-  {} CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin".format(sys.argv[0]), file=sys.stderr)
+        print("Usage: {} [--logisim] CONFIGFILE FILE.asm FILEOUT0 FILEOUT1".format(sys.argv[0]), file=sys.stderr)
+        print(" -or-  {} [--logisim] CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin".format(sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
+    if sys.argv[1] == "--logisim":
+        format = "logisim"
+        del sys.argv[1]
+    else:
+        # default
+        format = "bin"
+
     configfile = sys.argv[1]
+    if not os.path.exists(configfile):
+        print("File not found: " + configfile, file=sys.stderr)
+        sys.exit(1)
+
     filename = sys.argv[2]
     if not os.path.exists(filename):
         print("File not found: " + filename, file=sys.stderr)
@@ -41,7 +52,7 @@ def main():
 
     a = Assembler(configfile, info_callback=printmsg)
     try:
-        a.assemble_file(filename, fileout0, fileout1)
+        a.assemble_file(filename, format, fileout0, fileout1)
     except AssemblerException as e:
         printmsg( (e.msg, e.data + "\n  In: " + e.inst), color="1;31" )
 

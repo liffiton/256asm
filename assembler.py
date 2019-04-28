@@ -297,8 +297,20 @@ class Assembler:
 
         return ret
 
-    def assemble_file(self, filename, fileout0="", fileout1=""):
-        """Fully assemble a file containing CS256 ISA assembly code."""
+    def output_bin(self, filename, bytes):
+        """Create a binary image file for the given bytes."""
+        with open(filename, 'wb') as f:
+            f.write(bytes)
+
+    def output_logisim_img(self, filename, bytes):
+        """Create a Logisim memory image file for the given bytes."""
+        file_header = "v2.0 raw\n"  # header required by Logisim to read memory image files
+        with open(filename, 'w') as f:
+            f.write(file_header)
+            f.write(" ".join("{:02x}".format(byte) for byte in bytes))
+
+    def assemble_file(self, filename, format, fileout0="", fileout1=""):
+        """Fully assemble a Logisim memory image file containing CS256 ISA assembly code."""
         self.report_inf("Assembling", filename)
         with open(filename) as f:
             lines = f.readlines()
@@ -307,13 +319,17 @@ class Assembler:
 
         print(self.prettyprint_assembly(instructions, instructions_bin))
 
-        binfile0 = bytearray(word % 256 for word in instructions_bin)
-        binfile1 = bytearray(word // 256 for word in instructions_bin)
-        with open(fileout0, 'wb') as f0:
-            f0.write(binfile0)
-        with open(fileout1, 'wb') as f1:
-            f1.write(binfile1)
-        self.report_inf("Generated bin files", "{} and {}".format(fileout0, fileout1))
+        file0_contents = bytes(word % 256 for word in instructions_bin)
+        file1_contents = bytes(word // 256 for word in instructions_bin)
+
+        if format == "bin":
+            self.output_bin(fileout0, file0_contents)
+            self.output_bin(fileout1, file1_contents)
+        elif format == "logisim":
+            self.output_logisim_img(fileout0, file0_contents)
+            self.output_logisim_img(fileout1, file1_contents)
+
+        self.report_inf("Generated files", "{} and {}".format(fileout0, fileout1))
 
     def report_err(self, msg, data=""):
         raise AssemblerException(msg, data, self.cur_inst)
