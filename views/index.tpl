@@ -3,7 +3,8 @@
 <head>
   <title>{{name}}web</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+  <link rel="icon" type-"image/png" href="static/256asm_icon.png">
   <style type="text/css">
     #asm {
       width: 100%;
@@ -18,6 +19,13 @@
     #asm, #machine_code, #upper, #lower {
       font-family: monospace;
     }
+    .footer {
+      color: #999;
+      margin-top: 2em;
+      padding-top: 1em;
+      padding-bottom: 1em;
+      border-top: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
@@ -27,7 +35,6 @@
         {{name}}web
         <small>Paste or type {{name}} ISA code into the textarea to see the {{name}} ISA assembler output.</small>
       </h1>
-      <p>Download a command line version: <a href="/dl/{{name}}2bin.zip">{{name}}2bin</a></p>
     </div>
     <div class="row">
       <div class="col-md-6">
@@ -75,8 +82,15 @@
         </div>
       </div>
     </div>
+    <footer class="footer">
+      <p>Download command line version: <a href="/dl/{{name}}2bin.zip">{{name}}2bin</a></p>
+      <p>Source: <a href="https://github.com/liffiton/256asm">256asm on Github</a></p>
+    </footer>
   </div>
-<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script
+	src="https://code.jquery.com/jquery-3.4.1.min.js"
+	integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+	crossorigin="anonymous"></script>
 <script src="static/asmweb.js"></script>
 </body>
 </html>
