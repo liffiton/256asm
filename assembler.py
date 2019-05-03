@@ -6,6 +6,7 @@ import collections
 import configparser
 import re
 import sys
+from pathlib import PurePath
 
 
 class AssemblerException(Exception):
@@ -28,15 +29,18 @@ class Assembler:
     given in the specified config file."""
 
     def __init__(self, configfile, info_callback=None):
-        self.configfile = configfile
+        # manipulate configfile and samplefile as PurePath objects
+        self.configfile = PurePath(configfile)
+
         config = configparser.SafeConfigParser()
-        config.read(configfile)
+        config.read(self.configfile)
 
         self.name = config.get('general', 'name')
         self.inst_size = config.getint('general', 'inst_size')
         self.max_reg = config.getint('general', 'max_reg')
         self.reg_prefix = config.get('general', 'reg_prefix')
-        self.samplefile = config.get('general', 'samplefile')
+        # Samplefile should be in same directory as config file
+        self.samplefile = self.configfile.parent / config.get('general', 'samplefile')
 
         self.special_regs = \
             {x: int(y) for x, y in config.items('special_regs')}

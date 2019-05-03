@@ -42,7 +42,7 @@ def static(filename):
 
 @route('/sample.asm')
 def sample():
-    return static_file(assembler.samplefile, root='.')
+    return static_file(str(assembler.samplefile), root='.')
 
 
 @route('/dl/<filename>')
