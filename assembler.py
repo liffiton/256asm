@@ -259,7 +259,10 @@ class Assembler:
         # setup linelabels to map line numbers to labels
         linelabels = {line: label for (label, line) in self.labels.items()}
 
-        max_inst_width = max(len(inst) for inst in instructions)
+        if instructions:
+            max_inst_width = max(len(inst) for inst in instructions)
+        else:
+            max_inst_width = 15
 
         header = "  #: {0:<{1}}  {2:<20}  {3}\n".format("Instruction", max_inst_width, "Binary", "Hex")
         header += "-" * len(header) + "\n"
