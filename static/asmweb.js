@@ -1,12 +1,12 @@
 function submitasm() {
     $.post('/assemble/', $('#asm').val(), function(data) {
         if (data['error']) {
-            newerror = $("<div>").append($('<strong>', {text: data['error'][0] + ":"}));
+            var newerror = $("<div>").append($('<strong>', {text: data['error'][0] + ":"}));
             newerror.append(' ' + data['error'][1]);
             newerror.append('<br><strong>Instruction:</strong> ' + data['error'][2]);
             $('#error').html(newerror);
             $('#error').show().removeClass('hide');
-            $('#noerror').fadeTo("slow", 0.4);
+            $('#machine_code_panel').addClass("dim");
         }
         else {
             if (data['messages'].length) {
@@ -25,7 +25,7 @@ function submitasm() {
             $('#machine_code').html(data['code']);
             $('#upper').html(data['upper']);
             $('#lower').html(data['lower']);
-            $('#noerror').fadeTo("fast", 1.0);
+            $('#machine_code_panel').removeClass("dim");
             $('#error').hide();
         }
     });
@@ -73,6 +73,32 @@ function dosave() {
     addsave($('#saveas').val(), $('#asm').val());
     updatesaves();
 }
+function docopy(ev) {
+    var contents = $(ev.target).closest(".panel").find(".panel-body")[0].textContent;
+
+    // Copy to clipboard.  Thanks to https://stackoverflow.com/a/42416105
+    var tempInput = document.createElement("input");
+    tempInput.style = "position: absolute; left: -1000px; top: -1000px;";
+    tempInput.value = contents;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+
+    // Update button to indicate copy was successful
+    $(ev.target)
+      .removeClass("btn-primary")
+      .addClass("btn-success")
+      .text("Copied to clipboard");
+
+    // Reset after 5 seconds
+    setTimeout(function() {
+        $(ev.target)
+            .removeClass("btn-success")
+            .addClass("btn-primary")
+            .text("Copy");
+    }, 5000);
+}
 $('#savebutton').click(dosave);
 $('#saveas').keydown(function(e) {
     if (e.keyCode == 13) {  // 13 = enter
@@ -95,6 +121,8 @@ $('#saves').on('click', '.saveopt', function(event) {
 $('#asm').on('input propertychange', function() {
     submitasm();
 });
+$('#copyhigh').click(docopy);
+$('#copylow').click(docopy);
 $(function() {
     updatesaves();
     // load the sample

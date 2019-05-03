@@ -12,6 +12,9 @@
       white-space: pre;
       overflow: auto;
     }
+    .dim {
+      opacity: 0.4;
+    }
     #machine_code {
       white-space: pre;
       overflow: auto;
@@ -29,15 +32,19 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="page-header">
-      <h1>
-        {{name}}web
-        <small>Paste or type {{name}} ISA code into the textarea to see the {{name}} ISA assembler output.</small>
-      </h1>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <div class="page-header">
+          <h1>
+            {{name}}web
+            <small>Paste or type {{name}} ISA code to see the {{name}} ISA assembler output.</small>
+          </h1>
+        </div>
+      </div>
     </div>
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-6 col-lg-7">
         <h2>Assembly</h2>
         <textarea id="asm" spellcheck="false"></textarea>
         <div class="row"><div class="col-md-10 col-md-offset-1">
@@ -54,11 +61,11 @@
             </div>
           </div></div>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-6 col-lg-5">
+        <h2>Machine Code</h2>
+        <div id="info" class="hide"></div>
         <div id="error" class="alert alert-danger hide"></div>
-        <div id="noerror">
-          <div id="info" class="hide"></div>
-          <h2>Machine Code</h2>
+        <div id="machine_code_panel">
           <div class="panel panel-default">
             <div class="panel-body">
               <div id="machine_code"></div>
@@ -68,13 +75,19 @@
           <div class="row">
             <div class="col-sm-6">
               <div class="panel panel-default">
-                <div class="panel-heading">High Bytes</div>
+                <div class="panel-heading">
+                  <button id="copyhigh" class="btn btn-primary btn-xs pull-right">Copy</button>
+                  High Bytes
+                </div>
                 <div id="upper" class="panel-body"></div>
               </div>
             </div>
             <div class="col-sm-6">
               <div class="panel panel-default">
-                <div class="panel-heading">Low Bytes</div>
+                <div class="panel-heading">
+                  <button id="copylow" class="btn btn-primary btn-xs pull-right">Copy</button>
+                  Low Bytes
+                </div>
                 <div id="lower" class="panel-body"></div>
               </div>
             </div>
