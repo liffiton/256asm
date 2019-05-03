@@ -259,9 +259,12 @@ class Assembler:
         # setup linelabels to map line numbers to labels
         linelabels = {line: label for (label, line) in self.labels.items()}
 
-        ret = ""
-        ret += "  #: {:<20}  {:<20}  {}\n".format("Instruction", "Binary", "Hex")
-        ret += "-" * 55 + "\n"
+        max_inst_width = max(len(inst) for inst in instructions)
+
+        header = "  #: {0:<{1}}  {2:<20}  {3}\n".format("Instruction", max_inst_width, "Binary", "Hex")
+        header += "-" * len(header) + "\n"
+
+        ret = header
         for i in range(len(instructions)):
             inststr = instructions[i]
             instparts = inststr.split()
@@ -272,7 +275,7 @@ class Assembler:
                     instparts[j] = "<span style='color: {}'>{}</span>".format(self.palette[j], instparts[j])
             # Add spaces to pad to 20 chars.
             # (Can't use ljust because of added <span> chars.)
-            inststr = " ".join(instparts) + (" " * (20 - len(inststr)))
+            inststr = " ".join(instparts) + (" " * (max_inst_width - len(inststr)))
 
             # rjust() adds leading 0s if needed.
             instbin = bin(instructions_bin[i])[2:].rjust(16, '0')
