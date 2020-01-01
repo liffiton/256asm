@@ -197,7 +197,10 @@ class Assembler:
                 sys.exit(2)
             return regindex
         elif type == 'i' and re.match(r"^-?\d+$|^-?0x[a-fA-F0-9]+$|^-?0b[01]+$", arg):
-            return int(arg,0)
+            try:
+                return int(arg,0)
+            except ValueError as e:
+                self.report_err(str(e))
         elif type == 'j' and arg in self.labels:
             return self.labels[arg]
         elif type == 'l' and arg in self.labels:
