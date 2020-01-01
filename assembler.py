@@ -10,17 +10,18 @@ from pathlib import PurePath
 
 
 class AssemblerException(Exception):
-    def __init__(self, msg, data=None, instruction=None):
+    def __init__(self, msg, data=None, lineno=None, instruction=None):
         self.msg = msg
         self.data = data
+        self.lineno = lineno
         self.inst = instruction
 
     def __str__(self):
         ret = self.msg
         if self.data:
-            ret += ": " + str(self.data)
+            ret += ": {}".format(self.data)
         if self.inst:
-            ret += "\n  In: " + self.inst
+            ret += "\n  In line {}: {}".format(self.lineno, self.inst)
         return ret
 
 
@@ -91,18 +92,20 @@ class Assembler:
         # Used internally
         self.inst_regex = r"({})\s".format("|".join(self.instructions))
         self.labels = {}
-        self.cur_inst = ""     # used for error reporting
+        self.cur_inst = None    # used for error reporting
+        self.cur_lineno = None  # used for error reporting
 
         self.info_callback = info_callback
 
     def register_info_callback(self, info_callback):
         self.info_callback = info_callback
 
-    def assemble_instruction(self, inst, pc):
+    def assemble_instruction(self, inst, lineno, pc):
         """Produce the binary encoding of one instruction."""
         assert re.match(self.inst_regex, inst)
 
         self.cur_inst = inst
+        self.cur_lineno = lineno
 
         if "," in inst:
             if self.report_commas:
@@ -214,7 +217,7 @@ class Assembler:
 
     def assemble_instructions(self, instructions):
         """Assemble a list of instructions."""
-        return [self.assemble_instruction(instructions[i], i) for i in range(len(instructions))]
+        return [self.assemble_instruction(inst[0], inst[1], i) for i, inst in enumerate(instructions)]
 
     def first_pass(self, lines):
         """Take a first pass through the code, cleaning, stripping, and
@@ -224,7 +227,10 @@ class Assembler:
 
         instructions = []
 
-        for line in lines:
+        for lineno, line in enumerate(lines):
+            # one-based counting for lines
+            lineno += 1
+
             # strip comments
             line = line.partition("#")[0]
             # clean up
@@ -236,13 +242,13 @@ class Assembler:
 
             if re.match(self.inst_regex, line):
                 # it's an instruction!
-                instructions.append(line)
+                instructions.append((line, lineno))
             elif re.match("^[a-z][a-z0-9]*:$", line):
                 # store the label (strip the colon)
                 self.labels[line[:-1]] = len(instructions)
             else:
                 # Uh oh...
-                self.report_inf("Invalid line (ignoring)", line)
+                self.report_inf("Invalid line (ignoring)", "{}: {}".format(lineno, line))
 
         return instructions
 
@@ -263,7 +269,7 @@ class Assembler:
         linelabels = {line: label for (label, line) in self.labels.items()}
 
         if instructions:
-            max_inst_width = max(len(inst) for inst in instructions)
+            max_inst_width = max(len(inst[0]) for inst in instructions)
         else:
             max_inst_width = 15
 
@@ -272,7 +278,7 @@ class Assembler:
 
         ret = header
         for i in range(len(instructions)):
-            inststr = instructions[i]
+            inststr = instructions[i][0]
             instparts = inststr.split()
             op = instparts[0]
 
@@ -345,7 +351,7 @@ class Assembler:
         self.report_inf("Generated files", "{} and {}".format(fileout0, fileout1))
 
     def report_err(self, msg, data=""):
-        raise AssemblerException(msg, data, self.cur_inst)
+        raise AssemblerException(msg, data, self.cur_lineno, self.cur_inst)
 
     def report_inf(self, msg, data=""):
         self.info_callback( (msg, data) )

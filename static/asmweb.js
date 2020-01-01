@@ -1,16 +1,27 @@
 var cm = null;
+var cur_mark = null;
 
 function submitasm() {
     $.post('/assemble/', cm.getValue(), function(data) {
         if (data['error']) {
-            var newerror = $("<div>").append($('<strong>', {text: data['error'][0] + ":"}));
-            newerror.append(' ' + data['error'][1]);
-            newerror.append('<br><strong>Instruction:</strong> ' + data['error'][2]);
+            var err = data['error'];
+            var newerror = $("<div>").append($('<strong>', {text: err['msg'] + ":"}));
+            newerror.append(' ' + err['data']);
+            newerror.append('<br><strong>Line ' + err['lineno'] + ': </strong>' + err['inst']);
+            cur_mark = cm.markText(
+                {line:err['lineno']-1, ch:0},
+                {line:err['lineno'], ch:0},
+                {className: 'cm-error'}
+            );
             $('#error').html(newerror);
             $('#error').show().removeClass('hide');
             $('#machine_code_panel').addClass("dim");
         }
         else {
+            if (cur_mark) {
+                cur_mark.clear();
+                cur_mark = null;
+            }
             if (data['messages'].length) {
                 $('#info').show().removeClass('hide');
                 $('#info').empty();

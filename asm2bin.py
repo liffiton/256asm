@@ -10,6 +10,12 @@ import sys
 from assembler import Assembler, AssemblerException
 
 
+def printmsg(msgtuple, color="0;36"):
+    msg, data = msgtuple
+    print("[{}m{}:[m {}".format(color, msg, data))
+    print()
+
+
 def main():
     if len(sys.argv) < 3 or len(sys.argv) > 5:
         print("Usage: {} [--logisim] CONFIGFILE FILE.asm FILEOUT0 FILEOUT1".format(sys.argv[0]), file=sys.stderr)
@@ -45,16 +51,11 @@ def main():
 
     print()  # blank line
 
-    def printmsg(msgtuple, color="0;36"):
-        msg, data = msgtuple
-        print("[{}m{}:[m {}".format(color, msg, data))
-        print()
-
     a = Assembler(configfile, info_callback=printmsg)
     try:
         a.assemble_file(filename, format, fileout0, fileout1)
     except AssemblerException as e:
-        printmsg( (e.msg, e.data + "\n  In: " + e.inst), color="1;31" )
+        printmsg( (e.msg, "{}\nLine {}: {}".format(e.data, e.lineno, e.inst)), color="1;31" )
 
     # raw_input("Done.  Press enter to continue.")  # pause
 

@@ -87,7 +87,7 @@ def assemble():
         out['lower'] = " ".join("{:02x}".format(byte) for byte in lowerbytes)
 
     except AssemblerException as e:
-        out['error'] = (e.msg, e.data, e.inst)
+        out['error'] = {key: getattr(e, key) for key in ['msg', 'data', 'lineno', 'inst']}
 
     return out
 
