@@ -32,7 +32,12 @@ else:
 
 @route('/')
 def index():
-    return template('index', name=assembler.name)
+    return template(
+        'index',
+        name=assembler.name,
+        instructions=assembler.instructions,
+        reg_prefix=assembler.reg_prefix
+    )
 
 
 @route('/static/<filename>')

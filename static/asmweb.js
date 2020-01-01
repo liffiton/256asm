@@ -1,5 +1,7 @@
+var cm = null;
+
 function submitasm() {
-    $.post('/assemble/', $('#asm').val(), function(data) {
+    $.post('/assemble/', cm.getValue(), function(data) {
         if (data['error']) {
             var newerror = $("<div>").append($('<strong>', {text: data['error'][0] + ":"}));
             newerror.append(' ' + data['error'][1]);
@@ -30,6 +32,7 @@ function submitasm() {
         }
     });
 }
+
 function getsaves() {
     if (localStorage.getItem('saves') === null) {
         return {};
@@ -38,16 +41,19 @@ function getsaves() {
         return JSON.parse(localStorage.getItem('saves'));
     }
 }
+
 function addsave(name, text) {
     saves = getsaves();
     saves[name] = text;
     localStorage.setItem('saves', JSON.stringify(saves));
 }
+
 function delsave(name) {
     saves = getsaves();
     delete saves[toremove];
     localStorage.setItem('saves', JSON.stringify(saves));
 }
+
 function updatesaves() {
     saves = getsaves();
     if (!$.isEmptyObject(saves)) {
@@ -69,10 +75,12 @@ function updatesaves() {
         $('#savebox').hide();
     }
 }
+
 function dosave() {
-    addsave($('#saveas').val(), $('#asm').val());
+    addsave($('#saveas').val(), cm.getValue());
     updatesaves();
 }
+
 function docopy(ev) {
     var contents = $(ev.target).closest(".panel").find(".panel-body")[0].textContent;
 
@@ -99,36 +107,79 @@ function docopy(ev) {
             .text("Copy");
     }, 5000);
 }
-$('#savebutton').click(dosave);
-$('#saveas').keydown(function(e) {
-    if (e.keyCode == 13) {  // 13 = enter
-        dosave();
-    }
-});
-$('#saves').on('click', '.delbutton', function(event) {
-    toremove = this.previousSibling.innerHTML;  // hack!  Oh well.  :)
-    delsave(toremove);
-    updatesaves();
-    return false;  // don't let anyone else (below) handle this.
-});
-$('#saves').on('click', '.saveopt', function(event) {
-    savename = this.innerHTML;
-    saves = getsaves();
-    $('#asm').val(saves[savename]);
-    submitasm();
-    return false;
-});
-$('#asm').on('input propertychange', function() {
-    submitasm();
-});
-$('#copyhigh').click(docopy);
-$('#copylow').click(docopy);
+
+function setupHandlers() {
+    $('#savebutton').click(dosave);
+    $('#saveas').keydown(function(e) {
+        if (e.keyCode == 13) {  // 13 = enter
+            dosave();
+        }
+    });
+    $('#saves').on('click', '.delbutton', function(event) {
+        toremove = this.previousSibling.innerHTML;  // hack!  Oh well.  :)
+        delsave(toremove);
+        updatesaves();
+        return false;  // don't let anyone else (below) handle this.
+    });
+    $('#saves').on('click', '.saveopt', function(event) {
+        savename = this.innerHTML;
+        saves = getsaves();
+        cm.setValue(saves[savename]);
+        return false;
+    });
+    $('#copyhigh').click(docopy);
+    $('#copylow').click(docopy);
+    cm.on('change', function() {
+        // Triggered by setValue() as well as input events.
+        submitasm();
+    });
+}
+
+function setupCodeMirror() {
+    // Simple mode documentation: https://codemirror.net/demo/simplemode.html
+    CodeMirror.defineSimpleMode("256asm", {
+        start: [
+            // "sol" = match at start of line only
+            {token: "label",       regex: /[\w]*\:/i, sol: true, indent: true},
+            {token: "instruction", regex: instruction_regex}, // /(?:add|addi|sub|light|copy|zj)\b/i},
+            {token: "register",    regex: register_regex}, // /\$[0-9a-z]+/i},
+            {token: "number",      regex: /(?:0x|0b)[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)\b/i},
+            {token: "comment",     regex: /#.*/},
+            {token: "target",      regex: /[a-z$][\w$]*/i},
+            // simple way to catch a bunch of junk and highlight it...
+            {token: "error",       regex: /[\S]+/},
+        ],
+        comment: [],
+        meta: {
+            lineComment: "#"
+        }
+    });
+
+    var cm = CodeMirror(
+        document.getElementById("cm_container"),
+        {
+            lineNumbers: true,
+            lineWrapping: true,
+            scrollbarStyle: 'native',
+            theme: 'asmweb',
+            // expand tabs
+            extraKeys: {
+                Tab: function(cm) {
+                    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                    cm.replaceSelection(spaces);
+                }
+            }
+        }
+    );
+    return cm;
+}
+
 $(function() {
+    cm = setupCodeMirror();
+    setupHandlers();
     updatesaves();
     // load the sample
     $.get('/sample.asm', function(data) {
-        $('#asm').val(data);
-        // assemble it
-        submitasm();
+        cm.setValue(data);
     });
 });
