@@ -51,22 +51,13 @@
           </div>
           <h3>For Logisim</h3>
           <div class="row">
-            <div class="col-sm-6">
+            <div class="col-sm-12">
               <div class="panel panel-default">
                 <div class="panel-heading">
                   <button id="copyhigh" class="btn btn-primary btn-xs pull-right">Copy</button>
-                  High Bytes
+                  Machine Code
                 </div>
-                <div id="upper" class="panel-body"></div>
-              </div>
-            </div>
-            <div class="col-sm-6">
-              <div class="panel panel-default">
-                <div class="panel-heading">
-                  <button id="copylow" class="btn btn-primary btn-xs pull-right">Copy</button>
-                  Low Bytes
-                </div>
-                <div id="lower" class="panel-body"></div>
+                <div id="bin" class="panel-body"></div>
               </div>
             </div>
           </div>

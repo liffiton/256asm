@@ -36,8 +36,7 @@ function submitasm() {
                 $('#info').hide();
             }
             $('#machine_code').html(data['code']);
-            $('#upper').html(data['upper']);
-            $('#lower').html(data['lower']);
+            $('#bin').html(data['bin']);
             $('#machine_code_panel').removeClass("dim");
             $('#error').hide();
         }

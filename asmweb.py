@@ -76,15 +76,7 @@ def assemble():
     try:
         (instructions, instructions_bin) = assembler.assemble_lines(lines)
         out['code'] = assembler.prettyprint_assembly(instructions, instructions_bin, colorize=True)
-
-        upperbytes = []
-        lowerbytes = []
-        for word in instructions_bin:
-            upperbytes.append(word // 256)
-            lowerbytes.append(word % 256)
-
-        out['upper'] = " ".join("{:02x}".format(byte) for byte in upperbytes)
-        out['lower'] = " ".join("{:02x}".format(byte) for byte in lowerbytes)
+        out['bin'] = " ".join("{:04x}".format(word) for word in instructions_bin)
 
     except AssemblerException as e:
         out['error'] = {key: getattr(e, key) for key in ['msg', 'data', 'lineno', 'inst']}
