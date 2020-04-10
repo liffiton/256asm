@@ -18,10 +18,6 @@ function submitasm() {
             $('#machine_code_panel').addClass("dim");
         }
         else {
-            if (cur_mark) {
-                cur_mark.clear();
-                cur_mark = null;
-            }
             if (data['messages'].length) {
                 $('#info').show().removeClass('hide');
                 $('#info').empty();
@@ -141,6 +137,10 @@ function setupHandlers() {
     $('#copylow').click(docopy);
     cm.on('change', function() {
         // Triggered by setValue() as well as input events.
+        if (cur_mark) {
+            cur_mark.clear();
+            cur_mark = null;
+        }
         submitasm();
     });
 }
