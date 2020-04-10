@@ -17,9 +17,8 @@ immediate values.
 
 The assembler can be run via the command-line as ``asm2bin.py`` or via a simple
 web interface that assembles code and reports errors as the code is typed.
-Both interfaces produce binary data split into low and high bytes that can be
-copied into Logisim or written into EEPROMs to run the code on the students'
-CPU.
+Both interfaces produce binary data that can be copied into Logisim or written
+into EEPROMs to run the code on the students' CPU.
 
 ![asmweb screenshot](docs/asmweb_screenshot.png?raw=true)
 
@@ -34,6 +33,10 @@ To serve the web interface:
 
 The interface should then be accessible via port 8080.
 
+Optionally, you can specify a different port:
+
+    ./asmweb.py CONFIGFILE PORTNUMBER
+
 To run the command-line assembler:
 
     ./asm2bin.py CONFIGFILE FILE.asm
@@ -46,7 +49,7 @@ directly with:
 
 ## Dependencies
 
-The code is compatible with Python 3.x.
+The code is compatible with Python 3.6+.
 
 The web interface ``asmweb.py`` depends on [Bottle](https://bottlepy.org/), a
 version of which is included in this repository.
