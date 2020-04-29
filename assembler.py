@@ -328,7 +328,13 @@ class Assembler:
             f.write(file_header)
             f.write(" ".join("{:02x}".format(byte) for byte in bytes))
 
-    def assemble_file(self, filename, format, fileout0="", fileout1=""):
+    def output_sim_bin(self, filename, words):
+        """Create a 256sim memory image file for the given bytes."""
+        with open(filename, 'w') as f:
+            f.write(" ".join("{:04x}".format(word) for word in words))
+            f.write("\n")
+
+    def assemble_file(self, filename, format, outfiles):
         """Fully assemble a Logisim memory image file containing CS256 ISA assembly code."""
         self.report_inf("Assembling", filename)
         with open(filename) as f:
@@ -338,17 +344,19 @@ class Assembler:
 
         print(self.prettyprint_assembly(instructions, instructions_bin))
 
-        file0_contents = bytes(word % 256 for word in instructions_bin)
-        file1_contents = bytes(word // 256 for word in instructions_bin)
+        bytes_low = bytes(word % 256 for word in instructions_bin)
+        bytes_high = bytes(word // 256 for word in instructions_bin)
 
         if format == "bin":
-            self.output_bin(fileout0, file0_contents)
-            self.output_bin(fileout1, file1_contents)
+            self.output_bin(outfiles[0], bytes_low)
+            self.output_bin(outfiles[1], bytes_high)
+        elif format == "256sim":
+            self.output_sim_bin(outfiles[0], instructions_bin)
         elif format == "logisim":
-            self.output_logisim_img(fileout0, file0_contents)
-            self.output_logisim_img(fileout1, file1_contents)
+            self.output_logisim_img(outfiles[0], bytes_low)
+            self.output_logisim_img(outfiles[1], bytes_high)
 
-        self.report_inf("Generated files", "{} and {}".format(fileout0, fileout1))
+        self.report_inf("Generated", ", ".join(outfiles))
 
     def report_err(self, msg, data=""):
         raise AssemblerException(msg, data, self.cur_lineno, self.cur_inst)
