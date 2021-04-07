@@ -54,6 +54,8 @@ class Assembler:
             self.instructions[inst]['opcode'] = int(opcode)
         for inst, parts in config.items('instruction_parts'):
             self.instructions[inst]['parts'] = parts
+        for inst, tweak in config.items('instruction_tweaks'):
+            self.instructions[inst]['tweak'] = tweak
 
         if 'instruction_funccodes' in config.sections():
             for inst, funccode in config.items('instruction_funccodes'):
@@ -119,11 +121,11 @@ class Assembler:
         args = inst_parts[1:]
         inst_info = self.instructions[op]
 
-#        # Swap parts[1] and parts[2] for any instruction w/ at least 2 registers
-#        # Instructions are written with dest first, but dest is second register field in instruction
-#        if op != "biz" and op != "bnz":
-#            (parts[1],parts[2]) = (parts[2],parts[1])
-#
+        if inst_info['tweak'] == "flip_regs":
+            # Swap args[0] and args[1]
+            # e.g., for a Store instruction w/ dest address written first but it needs to be 2nd reg.
+            args[0], args[1] = args[1], args[0]
+
 #        # !!! For sb:  given "sb r1 r2 imm", we want r1 in s1 (place 3)   and r2 in s0 (place 1)"
 #        if op == 'sb':
 #            data_r = parts[2]
