@@ -272,6 +272,7 @@ class Assembler:
 
         if instructions:
             max_inst_width = max(len(inst[0]) for inst in instructions)
+            max_inst_width = max(max_inst_width, 12)   # always at *least* 12 chars
         else:
             max_inst_width = 15
 
