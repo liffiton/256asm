@@ -53,7 +53,7 @@ class Assembler:
         for inst, opcode in config.items('instruction_opcodes'):
             self.instructions[inst]['opcode'] = int(opcode)
         for inst, parts in config.items('instruction_parts'):
-            self.instructions[inst]['parts'] = parts
+            self.instructions[inst]['parts'] = list(parts)
         for inst, tweak in config.items('instruction_tweaks'):
             self.instructions[inst]['tweak'] = tweak
 
@@ -120,29 +120,8 @@ class Assembler:
         op = inst_parts[0]
         args = inst_parts[1:]
         inst_info = self.instructions[op]
-
-        if inst_info['tweak'] == "flip_regs":
-            # Swap args[0] and args[1]
-            # e.g., for a Store instruction w/ dest address written first but it needs to be 2nd reg.
-            args[0], args[1] = args[1], args[0]
-
-#        # !!! For sb:  given "sb r1 r2 imm", we want r1 in s1 (place 3)   and r2 in s0 (place 1)"
-#        if op == 'sb':
-#            data_r = parts[2]
-#            addr_r = parts[1]
-#            # !!! insert empty 'part' for the unused portion of the instruction
-#            parts.insert(2, 0)
-#            parts[1] = addr_r
-#            parts[3] = data_r
-#
-#        # !!! For lb:  given "lb r1 r2 imm", we want r1 in dest (place 2) and r2 in s0 (place 1)"
-#        if op == 'lb':
-#            data_r = parts[2]
-#            addr_r = parts[1]
-#            # !!! insert empty 'part' for the unused portion of the instruction
-#            parts.insert(3, 0)
-#            parts[1] = addr_r
-#            parts[2] = data_r
+        parts = inst_info['parts']
+        sizes = inst_info['sizes']
 
         # check for the correct number of arguments
         if inst_info['args'] != len(args):
@@ -152,11 +131,24 @@ class Assembler:
             )
             sys.exit(2)
 
+        if inst_info['tweak'] == "flip_args":
+            # Swap args[0] and args[1]
+            # e.g., for a Store instruction w/ dest address written first but it needs to be 2nd reg.
+            # e.g., for a Branch instruction where we want the immediate to be first in the encoding but we write the label second in the assembly instruction
+            args[0], args[1] = args[1], args[0]
+            parts[0], parts[1] = parts[1], parts[0]
+            sizes[0], sizes[1] = sizes[1], sizes[0]
+
+        elif inst_info['tweak'] == "dupe1to3":
+            # Copy args[0] to args[2]
+            # e.g., for a Store instruction w/ src data as first arg, but ISA typically has src reg as second and third args
+            args.append(args[0])
+            parts.append(parts[0])
+            sizes.append(sizes[0])
+
         # parse each part (get a numerical value for it)
         # and shift appropriate amount, summing each
         instruction = 0
-        parts = inst_info['parts']
-        sizes = inst_info['sizes']
         for i in range(len(parts)):
             c = parts[i]
             size = sizes[i]
@@ -189,6 +181,8 @@ class Assembler:
         """Parse one argument of an instruction (opcode, register,
         immediate, or label).
         """
+        #print(f"Type {type}  arg {arg}")
+
         if type == 'o':
             return inst_info['opcode']
         elif type == 'f':
@@ -214,7 +208,7 @@ class Assembler:
         elif type == 'x':  # unused - fill w/ zero bits
             return 0
         else:
-            self.report_err("Invalid instruction argument", arg)
+            self.report_err("Invalid instruction argument", f"{arg} - type {type}")
             sys.exit(2)
 
     def assemble_instructions(self, instructions):
