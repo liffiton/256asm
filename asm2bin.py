@@ -45,13 +45,13 @@ def main():
     if len(sys.argv) > 3:
         outfiles = sys.argv[3:]
     else:
-        # produce .0.bin and .1.bin from the filename given
+        # produce either .bin or .0.bin and .1.bin from the filename given
         # works well for drag-and-drop in Windows
         basename = os.path.splitext(filename)[0]
-        if format == "256sim":
-            outfiles = [basename + ".bin"]
+        if format == "256sim" or format == "logisim":
+            outfiles = [f"{basename}.bin"]
         else:
-            outfiles = [basename + "." + i + ".bin" for i in (0,1)]
+            outfiles = [f"{basename}.{i}.bin" for i in (0,1)]
 
     print()  # blank line
 

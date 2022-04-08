@@ -87,7 +87,7 @@ class Assembler:
                     sizes.append(self.field_sizes[c])
                     rem -= self.field_sizes[c]
             if rem:
-                sizes.append(rem)  # immediate (or extra) gets all remaining bits
+                sizes.append(rem)  # any extra gets all remaining bits
 
             inst_info['sizes'] = sizes
 
@@ -116,35 +116,32 @@ class Assembler:
             inst = inst.replace(',',' ')
 
         # split instruction into parts
-        inst_parts = inst.split()
-        op = inst_parts[0]
-        args = inst_parts[1:]
-        inst_info = self.instructions[op]
-        parts = inst_info['parts']
-        sizes = inst_info['sizes']
+        args = inst.split()
+        inst_info = self.instructions[args[0]]
+        # need copies of these because they may be modified
+        parts = inst_info['parts'][:]
+        sizes = inst_info['sizes'][:]
 
         # check for the correct number of arguments
-        if inst_info['args'] != len(args):
+        if inst_info['args'] != len(args)-1:
             self.report_err(
-                "Incorrect number of arguments in instruction (expected {}, got {})".format(inst_info['args'], len(args)),
+                "Incorrect number of arguments in instruction (expected {}, got {})".format(inst_info['args'], len(args)-1),
                 inst
             )
             sys.exit(2)
 
         if inst_info['tweak'] == "flip_args":
-            # Swap args[0] and args[1]
+            # Swap args[1] and args[2]
             # e.g., for a Store instruction w/ dest address written first but it needs to be 2nd reg.
             # e.g., for a Branch instruction where we want the immediate to be first in the encoding but we write the label second in the assembly instruction
-            args[0], args[1] = args[1], args[0]
-            parts[0], parts[1] = parts[1], parts[0]
-            sizes[0], sizes[1] = sizes[1], sizes[0]
+            args[1], args[2] = args[2], args[1]
 
         elif inst_info['tweak'] == "dupe1to3":
-            # Copy args[0] to args[2]
+            # Copy args[1] to args[3]
             # e.g., for a Store instruction w/ src data as first arg, but ISA typically has src reg as second and third args
-            args.append(args[0])
-            parts.append(parts[0])
-            sizes.append(sizes[0])
+            args.append(args[1])
+            parts.append(parts[1])
+            sizes.append(sizes[1])
 
         # parse each part (get a numerical value for it)
         # and shift appropriate amount, summing each
@@ -154,8 +151,8 @@ class Assembler:
             size = sizes[i]
             shamt = sum(sizes[i+1:])
 
-            # r, l, j, and i have arguments, opcode and funccode do not
-            if c in ['r', 'l', 'j', 'i']:
+            # o, r, l, j, and i have arguments, funccode does not
+            if c in ['o', 'r', 'l', 'j', 'i']:
                 arg = args.pop(0)
                 val = self.parse_part(c, inst_info, pc, arg)
             else:
@@ -318,12 +315,12 @@ class Assembler:
         with open(filename, 'wb') as f:
             f.write(bytes)
 
-    def output_logisim_img(self, filename, bytes):
+    def output_logisim_img(self, filename, words):
         """Create a Logisim memory image file for the given bytes."""
         file_header = "v2.0 raw\n"  # header required by Logisim to read memory image files
         with open(filename, 'w') as f:
             f.write(file_header)
-            f.write(" ".join("{:02x}".format(byte) for byte in bytes))
+            f.write(" ".join("{:04x}".format(word) for word in words))
 
     def output_sim_bin(self, filename, words):
         """Create a 256sim memory image file for the given bytes."""
@@ -332,7 +329,7 @@ class Assembler:
             f.write("\n")
 
     def assemble_file(self, filename, format, outfiles):
-        """Fully assemble a Logisim memory image file containing CS256 ISA assembly code."""
+        """Fully assemble a memory image file containing CS256 ISA assembly code."""
         self.report_inf("Assembling", filename)
         with open(filename) as f:
             lines = f.readlines()
@@ -350,8 +347,7 @@ class Assembler:
         elif format == "256sim":
             self.output_sim_bin(outfiles[0], instructions_bin)
         elif format == "logisim":
-            self.output_logisim_img(outfiles[0], bytes_low)
-            self.output_logisim_img(outfiles[1], bytes_high)
+            self.output_logisim_img(outfiles[0], instructions_bin)
 
         self.report_inf("Generated", ", ".join(outfiles))
 

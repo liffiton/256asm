@@ -16,7 +16,7 @@
     white-space: pre;
     overflow: auto;
 }
-#asm, #machine_code, #bin {
+#asm, #machine_code, #bin, #upper, #lower {
     font-family: monospace;
 }
 .footer {

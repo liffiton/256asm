@@ -32,6 +32,8 @@ function submitasm() {
                 $('#info').hide();
             }
             $('#machine_code').html(data['code']);
+            $('#upper').html(data['upper']);
+            $('#lower').html(data['lower']);
             $('#bin').html(data['bin']);
             $('#machine_code_panel').removeClass("dim");
             $('#error').hide();
@@ -133,8 +135,7 @@ function setupHandlers() {
         cm.setValue(saves[savename]);
         return false;
     });
-    $('#copyhigh').click(docopy);
-    $('#copylow').click(docopy);
+    $('.copy_button').click(docopy);
     cm.on('change', function() {
         // Triggered by setValue() as well as input events.
         if (cur_mark) {

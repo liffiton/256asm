@@ -49,15 +49,36 @@
               <div id="machine_code"></div>
             </div>
           </div>
-          <h3>For Logisim</h3>
+          <h3>For Simulator</h3>
           <div class="row">
             <div class="col-sm-12">
               <div class="panel panel-default">
                 <div class="panel-heading">
-                  <button id="copyhigh" class="btn btn-primary btn-xs pull-right">Copy</button>
+                  <button class="copy_button btn btn-primary btn-xs pull-right">Copy</button>
                   Machine Code
                 </div>
                 <div id="bin" class="panel-body"></div>
+              </div>
+            </div>
+          </div>
+          <h3>For Programming ROMs</h3>
+          <div class="row">
+            <div class="col-sm-6">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <button class="copy_button btn btn-primary btn-xs pull-right">Copy</button>
+                  High Bytes
+                </div>
+                <div id="upper" class="panel-body"></div>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <button class="copy_button btn btn-primary btn-xs pull-right">Copy</button>
+                  Low Bytes
+                </div>
+                <div id="lower" class="panel-body"></div>
               </div>
             </div>
           </div>
