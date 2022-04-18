@@ -3,7 +3,7 @@ label1:
   add $0 $1 $2
   sub $branch $zero $input
   seti $8 -128
-  rand $5 55
+  rand $5
   sb $5 $15
   lb $5 $15
 label2:
