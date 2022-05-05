@@ -98,8 +98,8 @@
 <script src="static/mode_simple.js"></script>
 <script type="text/JavaScript">
   // Create these here to be populated from the config, leaving the .js file static.
-  var instruction_regex = /[{{ reg_prefix }}][0-9a-z]+\b/i;
-  var register_regex = /(?:{{ '|'.join(instructions) }})\b/i;
+  var instruction_regex = /(?:{{ '|'.join(instructions) }})\b/i;
+  var register_regex = /[{{ reg_prefix }}][0-9a-z]+\b/i;
 </script>
 <script src="static/asmweb.js"></script>
 </body>
