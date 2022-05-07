@@ -90,10 +90,7 @@
       <p>Source: <a href="https://github.com/liffiton/256asm">256asm on Github</a></p>
     </footer>
   </div>
-<script
-	src="https://code.jquery.com/jquery-3.4.1.min.js"
-	integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-	crossorigin="anonymous"></script>
+<script src="static/jquery-3.6.0.min.js"></script>
 <script src="static/codemirror.js"></script>
 <script src="static/mode_simple.js"></script>
 <script type="text/JavaScript">
