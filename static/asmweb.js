@@ -152,7 +152,7 @@ function setupCodeMirror() {
     CodeMirror.defineSimpleMode("256asm", {
         start: [
             // "sol" = match at start of line only
-            {token: "label",       regex: /[\s]*[a-z][\w]+\:/i, sol: true, indent: true},
+            {token: "label",       regex: /[\s]*[a-z][\w]*\:/i, sol: true, indent: true},
             {token: "instruction", regex: instruction_regex}, // /(?:add|addi|sub|light|copy|zj)\b/i},
             {token: "register",    regex: register_regex}, // /\$[0-9a-z]+/i},
             {token: "number",      regex: /(?:0x|0b)[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)\b/i},
