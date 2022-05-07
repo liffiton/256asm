@@ -190,7 +190,7 @@ $(function() {
     setupHandlers();
     updatesaves();
     // load the sample
-    $.get('/sample.asm', function(data) {
+    $.get(samplefile, function(data) {
         cm.setValue(data);
     });
 });

@@ -35,19 +35,20 @@ def index():
     return template(
         'index',
         name=assembler.name,
+        samplefile=assembler.samplefile,
         instructions=assembler.instructions,
         reg_prefix=assembler.reg_prefix
     )
 
 
+@route('/conf/<filename>')
+def conf(filename):
+    return static_file(filename, root='conf/')
+
+
 @route('/static/<filename>')
 def static(filename):
     return static_file(filename, root='static/')
-
-
-@route('/sample.asm')
-def sample():
-    return static_file(str(assembler.samplefile), root='.')
 
 
 @route('/dl/<filename>')

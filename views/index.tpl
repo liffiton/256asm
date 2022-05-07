@@ -94,9 +94,10 @@
 <script src="static/codemirror.js"></script>
 <script src="static/mode_simple.js"></script>
 <script type="text/JavaScript">
-  // Create these here to be populated from the config, leaving the .js file static.
-  var instruction_regex = /(?:{{ '|'.join(instructions) }})\b/i;
-  var register_regex = /[{{ reg_prefix }}][0-9a-z]+\b/i;
+  // Create these here to be populated from the config, leaving the asmweb.js file static.
+  let instruction_regex = /(?:{{ '|'.join(instructions) }})\b/i;
+  let register_regex = /[{{ reg_prefix }}][0-9a-z]+\b/i;
+  let samplefile = "{{ samplefile }}";
 </script>
 <script src="static/asmweb.js"></script>
 </body>
