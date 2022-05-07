@@ -5,7 +5,6 @@ Author: Mark Liffiton
 import collections
 import configparser
 import re
-import sys
 from pathlib import PurePath
 
 
@@ -128,7 +127,6 @@ class Assembler:
                 "Incorrect number of arguments in instruction (expected {}, got {})".format(inst_info['args'], len(args)-1),
                 inst
             )
-            sys.exit(2)
 
         if inst_info['tweak'] == "flip_args":
             # Swap args[1] and args[2]
@@ -165,7 +163,6 @@ class Assembler:
                         "Immediate/Label out of range",
                         "{}-bit space, but |{}| > 2^{}".format(size, val, size-1)
                     )
-                    sys.exit(2)
                 # fit negative values into given # of bits
                 val = val % 2**size
 
@@ -190,7 +187,6 @@ class Assembler:
             regindex = int(arg[1:])
             if regindex > self.max_reg:
                 self.report_err("Register out of range", regindex)
-                sys.exit(2)
             return regindex
         elif type == 'i' and re.match(r"^-?\d+$|^-?0x[a-fA-F0-9]+$|^-?0b[01]+$", arg):
             try:
@@ -206,7 +202,6 @@ class Assembler:
             return 0
         else:
             self.report_err("Invalid instruction argument", f"{arg} - type {type}")
-            sys.exit(2)
 
     def assemble_instructions(self, instructions):
         """Assemble a list of instructions."""
