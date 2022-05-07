@@ -32,7 +32,7 @@ class Assembler:
         # manipulate configfile and samplefile as PurePath objects
         self.configfile = PurePath(configfile)
 
-        config = configparser.SafeConfigParser()
+        config = configparser.ConfigParser()
         config.read(self.configfile)
 
         self.name = config.get('general', 'name')
