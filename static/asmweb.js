@@ -3,6 +3,20 @@ var cur_mark = null;
 
 function submitasm() {
     $.post('/assemble/', cm.getValue(), function(data) {
+        if (data['messages'].length) {
+            $('#info').show().removeClass('hide');
+            $('#info').empty();
+            data['messages'].forEach(function(msg) {
+                newinfo = $("<div>", {class: 'alert alert-info'});
+                newinfo.append($('<strong>', {text: msg[0] + ":"}));
+                newinfo.append(' ' + msg[1]);
+                $('#info').append(newinfo);
+            });
+        }
+        else {
+            $('#info').hide();
+        }
+
         if (data['error']) {
             var err = data['error'];
             var newerror = $("<div>").append($('<strong>', {text: err['msg'] + ":"}));
@@ -18,19 +32,6 @@ function submitasm() {
             $('#machine_code_panel').addClass("dim");
         }
         else {
-            if (data['messages'].length) {
-                $('#info').show().removeClass('hide');
-                $('#info').empty();
-                data['messages'].forEach(function(msg) {
-                    newinfo = $("<div>", {class: 'alert alert-info'});
-                    newinfo.append($('<strong>', {text: msg[0] + ":"}));
-                    newinfo.append(' ' + msg[1]);
-                    $('#info').append(newinfo);
-                });
-            }
-            else {
-                $('#info').hide();
-            }
             $('#machine_code').html(data['code']);
             $('#upper').html(data['upper']);
             $('#lower').html(data['lower']);
