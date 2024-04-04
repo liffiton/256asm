@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{{name}}web</title>
+  <title>256asm_web</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
   <link rel="stylesheet" href="static/codemirror.css">
@@ -14,8 +14,8 @@
       <div class="col-md-10 col-md-offset-1">
         <div class="page-header">
           <h1>
-            {{name}}web
-            <small>Paste or type {{name}} ISA code to see the {{name}} ISA assembler output.</small>
+            256asm_web
+            <small>Paste or type {{name}} ISA code to see the assembler output.</small>
           </h1>
         </div>
       </div>
