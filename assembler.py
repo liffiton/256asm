@@ -5,6 +5,7 @@ Author: Mark Liffiton
 import collections
 import configparser
 import re
+from dataclasses import dataclass
 from pathlib import PurePath
 
 
@@ -22,6 +23,14 @@ class AssemblerException(Exception):
         if self.inst:
             ret += "\n  In line {}: {}".format(self.lineno, self.inst)
         return ret
+
+
+@dataclass
+class Instruction:
+    text: str
+    lineno: int
+    parts: list[(str, str)] | None = None
+    binary: int | None = None
 
 
 class Assembler:
@@ -94,30 +103,31 @@ class Assembler:
         self.inst_regex = r"({})\s".format("|".join(self.instructions))
         self.labels = {}
         self.cur_inst = None    # used for error reporting
-        self.cur_lineno = None  # used for error reporting
 
         self.info_callback = info_callback
 
     def register_info_callback(self, info_callback):
         self.info_callback = info_callback
 
-    def assemble_instruction(self, inst, lineno, pc):
+    def assemble_instruction(self, inst, pc):
         """Produce the binary encoding of one instruction."""
-        assert re.match(self.inst_regex, inst)
+        assert re.match(self.inst_regex, inst.text)
 
         self.cur_inst = inst
-        self.cur_lineno = lineno
 
-        if "," in inst:
+        if "," in inst.text:
             if self.report_commas:
                 self.report_inf("Invalid comma found (stripping all commas)", inst)
                 self.report_commas = False
             inst = inst.replace(',',' ')
 
         # split instruction into parts
-        args = inst.split()
+        args = inst.text.split()
+        colors = self.palette[:len(args)]
+        inst.parts = list(zip(args, colors))
+
         inst_info = self.instructions[args[0]]
-        # need copies of these because they may be modified
+        # take copies of these because they may be modified
         parts = inst_info['parts'][:]
         sizes = inst_info['sizes'][:]
 
@@ -128,13 +138,13 @@ class Assembler:
                 inst
             )
 
-        if inst_info['tweak'] == "flip_args":
+        if inst_info.get('tweak') == "flip_args":
             # Swap args[1] and args[2]
             # e.g., for a Store instruction w/ dest address written first but it needs to be 2nd reg.
             # e.g., for a Branch instruction where we want the immediate to be first in the encoding but we write the label second in the assembly instruction
             args[1], args[2] = args[2], args[1]
 
-        elif inst_info['tweak'] == "dupe1to3":
+        elif inst_info.get('tweak') == "dupe1to3":
             # Copy args[1] to args[3]
             # e.g., for a Store instruction w/ src data as first arg, but ISA typically has src reg as second and third args
             args.append(args[1])
@@ -143,7 +153,7 @@ class Assembler:
 
         # parse each part (get a numerical value for it)
         # and shift appropriate amount, summing each
-        instruction = 0
+        instruction_bin = 0
         for i in range(len(parts)):
             c = parts[i]
             size = sizes[i]
@@ -167,9 +177,9 @@ class Assembler:
                 val = val % 2**size
 
             # print "Shifting: {} << {}".format(val, shamt)
-            instruction += val << shamt
+            instruction_bin += val << shamt
 
-        return instruction
+        inst.binary = instruction_bin
 
     def parse_part(self, type, inst_info, pc, arg=None):
         """Parse one argument of an instruction (opcode, register,
@@ -205,9 +215,9 @@ class Assembler:
 
     def assemble_instructions(self, instructions):
         """Assemble a list of instructions."""
-        return [self.assemble_instruction(inst[0], inst[1], i) for i, inst in enumerate(instructions)]
+        return [self.assemble_instruction(inst, pc) for pc, inst in enumerate(instructions)]
 
-    def first_pass(self, lines):
+    def first_pass(self, lines) -> list[Instruction]:
         """Take a first pass through the code, cleaning, stripping, and
            determining label addresses."""
         # clear the labels (in case this object is reused)
@@ -230,7 +240,8 @@ class Assembler:
 
             if re.match(self.inst_regex, line):
                 # it's an instruction!
-                instructions.append((line, lineno))
+                inst = Instruction(text=line, lineno=lineno)
+                instructions.append(inst)
             elif re.match("^[a-z][a-z0-9]*:$", line):
                 # store the label (strip the colon)
                 self.labels[line[:-1]] = len(instructions)
@@ -245,10 +256,10 @@ class Assembler:
         Returns a list of binary-encoded instructions.
         """
         instructions = self.first_pass(lines)
-        instructions_bin = self.assemble_instructions(instructions)
-        return (instructions, instructions_bin)
+        self.assemble_instructions(instructions)
+        return instructions
 
-    def prettyprint_assembly(self, instructions, instructions_bin, colorize=False):
+    def prettyprint_assembly(self, instructions, colorize=False):
         """Return a pretty-printed string of the instructions and their
         assembled machine code to stdout.
         """
@@ -257,7 +268,7 @@ class Assembler:
         linelabels = {line: label for (label, line) in self.labels.items()}
 
         if instructions:
-            max_inst_width = max(len(inst[0]) for inst in instructions)
+            max_inst_width = max(len(inst.text) for inst in instructions)
             max_inst_width = max(max_inst_width, 12)   # always at *least* 12 chars
         else:
             max_inst_width = 15
@@ -266,20 +277,21 @@ class Assembler:
         header += "-" * len(header) + "\n"
 
         ret = header
-        for i in range(len(instructions)):
-            inststr = instructions[i][0]
-            instparts = inststr.split()
-            op = instparts[0]
+        for inst in instructions:
+            op = inst.parts[0][0]
+
+            inst_str = " ".join(part[0] for part in inst.parts)
+            # Add spaces to pad to 20 chars.
+            # (Pre-compute because don't wan to count added <span> chars when colorized.)
+            padding = " " * (max_inst_width - len(inst_str))
 
             if colorize:
-                for j in range(len(instparts)):
-                    instparts[j] = "<span style='color: {}'>{}</span>".format(self.palette[j], instparts[j])
-            # Add spaces to pad to 20 chars.
-            # (Can't use ljust because of added <span> chars.)
-            inststr = " ".join(instparts) + (" " * (max_inst_width - len(inststr)))
+                inst_str = " ".join(f"<span style='color: {part[1]}'>{part[0]}</span>" for part in inst.parts)
+
+            inst_str += padding
 
             # rjust() adds leading 0s if needed.
-            instbin = bin(instructions_bin[i])[2:].rjust(16, '0')
+            instbin = bin(inst.binary)[2:].rjust(16, '0')
             instbinparts = []
             j = 0
             sizes = self.instructions[op]['sizes']
@@ -295,13 +307,13 @@ class Assembler:
             # (Can't use ljust because of added <span> chars.)
             instbinstr = " ".join(instbinparts) + (" " * (20 - self.inst_size - (len(sizes)-1)))
 
-            insthex = "{:04x}".format(instructions_bin[i])
+            insthex = "{:04x}".format(inst.binary)
 
-            if i in linelabels:
-                ret += linelabels[i] + ":\n"
+            if inst.lineno in linelabels:
+                ret += linelabels[inst.lineno] + ":\n"
 
             # (Can't use format string justification because of added <span> chars.)
-            ret += "{:3}: {}  {}  {}\n".format(i, inststr, instbinstr, insthex)
+            ret += "{:3}: {}  {}  {}\n".format(inst.lineno, inst_str, instbinstr, insthex)
 
         return ret
 
@@ -329,25 +341,26 @@ class Assembler:
         with open(filename) as f:
             lines = f.readlines()
 
-        (instructions, instructions_bin) = self.assemble_lines(lines)
+        instructions = self.assemble_lines(lines)
 
-        print(self.prettyprint_assembly(instructions, instructions_bin))
+        print(self.prettyprint_assembly(instructions))
 
-        bytes_low = bytes(word % 256 for word in instructions_bin)
-        bytes_high = bytes(word // 256 for word in instructions_bin)
+        binary = [inst.binary for inst in instructions]
+        bytes_low = bytes(word % 256 for word in binary)
+        bytes_high = bytes(word // 256 for word in binary)
 
         if format == "bin":
             self.output_bin(outfiles[0], bytes_low)
             self.output_bin(outfiles[1], bytes_high)
         elif format == "256sim":
-            self.output_sim_bin(outfiles[0], instructions_bin)
+            self.output_sim_bin(outfiles[0], binary)
         elif format == "logisim":
-            self.output_logisim_img(outfiles[0], instructions_bin)
+            self.output_logisim_img(outfiles[0], binary)
 
         self.report_inf("Generated", ", ".join(outfiles))
 
     def report_err(self, msg, data=""):
-        raise AssemblerException(msg, data, self.cur_lineno, self.cur_inst)
+        raise AssemblerException(msg, data, self.cur_inst.lineno, self.cur_inst.text)
 
     def report_inf(self, msg, data=""):
         self.info_callback( (msg, data) )

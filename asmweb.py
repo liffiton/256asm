@@ -75,13 +75,14 @@ def assemble():
     assembler.register_info_callback(out['messages'].append)
 
     try:
-        (instructions, instructions_bin) = assembler.assemble_lines(lines)
-        out['code'] = assembler.prettyprint_assembly(instructions, instructions_bin, colorize=True)
-        out['bin'] = " ".join("{:04x}".format(word) for word in instructions_bin)
+        instructions = assembler.assemble_lines(lines)
+        out['code'] = assembler.prettyprint_assembly(instructions, colorize=True)
+        binary = [inst.binary for inst in instructions]
+        out['bin'] = " ".join("{:04x}".format(word) for word in binary)
 
         upperbytes = []
         lowerbytes = []
-        for word in instructions_bin:
+        for word in binary:
             upperbytes.append(word // 256)
             lowerbytes.append(word % 256)
 
