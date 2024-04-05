@@ -29,7 +29,8 @@ class AssemblerException(Exception):
 class Instruction:
     text: str
     lineno: int
-    parts: list[(str, str)] | None = None
+    text_parts: list[tuple[str, str]] | None = None
+    bin_parts: list[tuple] | None = None
     binary: int | None = None
 
 
@@ -95,7 +96,9 @@ class Assembler:
                     sizes.append(self.field_sizes[c])
                     rem -= self.field_sizes[c]
             if rem:
-                sizes.append(rem)  # any extra gets all remaining bits
+                # any extra gets all remaining bits
+                inst_info['parts'].append('x')
+                sizes.append(rem)
 
             inst_info['sizes'] = sizes
 
@@ -117,19 +120,15 @@ class Assembler:
 
         if "," in inst.text:
             if self.report_commas:
-                self.report_inf("Invalid comma found (stripping all commas)", inst)
+                self.report_inf("Invalid comma found (stripping all commas)", inst.text)
                 self.report_commas = False
             inst = inst.replace(',',' ')
 
         # split instruction into parts
         args = inst.text.split()
-        colors = self.palette[:len(args)]
-        inst.parts = list(zip(args, colors))
+        inst.text_parts = list(zip(args, self.palette))  # zip() stops at end of shortest
 
         inst_info = self.instructions[args[0]]
-        # take copies of these because they may be modified
-        parts = inst_info['parts'][:]
-        sizes = inst_info['sizes'][:]
 
         # check for the correct number of arguments
         if inst_info['args'] != len(args)-1:
@@ -138,46 +137,50 @@ class Assembler:
                 inst
             )
 
+        bin_parts = []
+        text_part_iter = iter(inst.text_parts)
+        for kind, size in zip(inst_info['parts'], inst_info['sizes']):
+            if kind in ['o', 'r', 'l', 'j', 'i']:
+                # these have arguments
+                arg, color = next(text_part_iter)
+                val = self.parse_part(kind, inst_info, pc, arg)
+
+                # check immediate or branch size
+                if kind in ['l', 'j', 'i']:
+                    if val >= 2**(size-1) or val < -2**(size-1):
+                        self.report_err(
+                            "Immediate/Label out of range",
+                            "{}-bit space, but |{}| > 2^{}".format(size, val, size-1)
+                        )
+                    # fit negative values into given # of bits
+                    val = val % 2**size
+            else:
+                # other kinds ('x', funccode) do not
+                val = self.parse_part(kind, inst_info, pc)
+                color = '#999999'
+
+            # Convert to binary; rjust() adds leading 0s if needed.
+            bin_val = bin(val)[2:].rjust(size, '0')
+            bin_parts.append((kind, size, bin_val, val, color))
+
         if inst_info.get('tweak') == "flip_args":
-            # Swap args[1] and args[2]
+            # Swap first and second operand
             # e.g., for a Store instruction w/ dest address written first but it needs to be 2nd reg.
             # e.g., for a Branch instruction where we want the immediate to be first in the encoding but we write the label second in the assembly instruction
-            args[1], args[2] = args[2], args[1]
+            bin_parts[1], bin_parts[2] = bin_parts[2], bin_parts[1]
 
         elif inst_info.get('tweak') == "dupe1to3":
-            # Copy args[1] to args[3]
+            # Copy first operand to third (end) position
             # e.g., for a Store instruction w/ src data as first arg, but ISA typically has src reg as second and third args
-            args.append(args[1])
-            parts.append(parts[1])
-            sizes.append(sizes[1])
+            bin_parts.append(bin_parts[1])
 
-        # parse each part (get a numerical value for it)
-        # and shift appropriate amount, summing each
+        inst.bin_parts = bin_parts
+
+        # build final binary by shifting and summing each part
         instruction_bin = 0
-        for i in range(len(parts)):
-            c = parts[i]
-            size = sizes[i]
-            shamt = sum(sizes[i+1:])
-
-            # o, r, l, j, and i have arguments, funccode does not
-            if c in ['o', 'r', 'l', 'j', 'i']:
-                arg = args.pop(0)
-                val = self.parse_part(c, inst_info, pc, arg)
-            else:
-                val = self.parse_part(c, inst_info, pc)
-
-            # check immediate or branch size
-            if c in ['l', 'j', 'i']:
-                if val >= 2**(size-1) or val < -2**(size-1):
-                    self.report_err(
-                        "Immediate/Label out of range",
-                        "{}-bit space, but |{}| > 2^{}".format(size, val, size-1)
-                    )
-                # fit negative values into given # of bits
-                val = val % 2**size
-
-            # print "Shifting: {} << {}".format(val, shamt)
-            instruction_bin += val << shamt
+        for kind, size, bin_val, val, color in bin_parts:
+            instruction_bin <<= size
+            instruction_bin += val
 
         inst.binary = instruction_bin
 
@@ -264,7 +267,7 @@ class Assembler:
         assembled machine code to stdout.
         """
 
-        # setup linelabels to map line numbers to labels
+        # set up linelabels to map line numbers to labels
         linelabels = {line: label for (label, line) in self.labels.items()}
 
         if instructions:
@@ -278,34 +281,27 @@ class Assembler:
 
         ret = header
         for inst in instructions:
-            op = inst.parts[0][0]
-
-            inst_str = " ".join(part[0] for part in inst.parts)
-            # Add spaces to pad to 20 chars.
-            # (Pre-compute because don't wan to count added <span> chars when colorized.)
+            inst_str = " ".join(part[0] for part in inst.text_parts)
+            # Pad to 20 chars with spaces.
+            # (Pre-compute because don't want to count added <span> chars when colorized.)
             padding = " " * (max_inst_width - len(inst_str))
 
             if colorize:
-                inst_str = " ".join(f"<span style='color: {part[1]}'>{part[0]}</span>" for part in inst.parts)
+                inst_str = " ".join(f"<span style='color: {part[1]}'>{part[0]}</span>" for part in inst.text_parts)
 
             inst_str += padding
 
-            # rjust() adds leading 0s if needed.
-            instbin = bin(inst.binary)[2:].rjust(16, '0')
-            instbinparts = []
-            j = 0
-            sizes = self.instructions[op]['sizes']
-            for size in sizes:
-                part = instbin[j:j+size]
-                instbinparts.append(part)
-                j += size
+            # Pad to 20 chars with spaces.
+            padding_len = 20 - self.inst_size - (len(inst.bin_parts) - 1)
             if colorize:
-                for j in range(len(sizes)):
-                    instbinparts[j] = "<span style='color: {}'>{}</span>".format(self.palette[j], instbinparts[j])
-            # Add spaces between and after all parts and padding to 20 chars,
-            # accounting for bits of the instruction and spaces between parts.
-            # (Can't use ljust because of added <span> chars.)
-            instbinstr = " ".join(instbinparts) + (" " * (20 - self.inst_size - (len(sizes)-1)))
+                instbinstr = " ".join(
+                    f"<span style='color: {color}'>{bin_val}</span>"
+                    for kind, size, bin_val, val, color in inst.bin_parts
+                ) + (" " * padding_len)
+            else:
+                instbinstr = " ".join(
+                    bin_val for kind, size, bin_val, val, color in inst.bin_parts
+                ) + (" " * padding_len)
 
             insthex = "{:04x}".format(inst.binary)
 
