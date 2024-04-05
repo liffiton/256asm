@@ -63,8 +63,9 @@ class Assembler:
             self.instructions[inst]['opcode'] = int(opcode)
         for inst, parts in config.items('instruction_parts'):
             self.instructions[inst]['parts'] = list(parts)
-        for inst, tweak in config.items('instruction_tweaks'):
-            self.instructions[inst]['tweak'] = tweak
+        if 'instruction_tweaks' in config:
+            for inst, tweak in config.items('instruction_tweaks'):
+                self.instructions[inst]['tweak'] = tweak
 
         if 'instruction_funccodes' in config.sections():
             for inst, funccode in config.items('instruction_funccodes'):
