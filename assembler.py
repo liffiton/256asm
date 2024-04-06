@@ -123,7 +123,7 @@ class Assembler:
             if self.report_commas:
                 self.report_inf("Invalid comma found (stripping all commas)", inst.text)
                 self.report_commas = False
-            inst = inst.replace(',',' ')
+            inst.text = inst.text.replace(',',' ')
 
         # split instruction into parts
         args = inst.text.split()
@@ -135,7 +135,7 @@ class Assembler:
         if inst_info['args'] != len(args)-1:
             self.report_err(
                 "Incorrect number of arguments in instruction (expected {}, got {})".format(inst_info['args'], len(args)-1),
-                inst
+                inst.text
             )
 
         bin_parts = []
