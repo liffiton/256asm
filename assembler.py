@@ -85,9 +85,9 @@ class Assembler:
         # modifies instruction dictionaries within self.instructions
         for inst_info in self.instructions.values():
             # figure out number of required arguments to instruction
-            # (number of parts, not counting opcode(s) or function code(s) or 'x' space)
+            # (count number of parts of types that require arguments)
             parts = inst_info['parts']
-            inst_info['args'] = len(parts) - parts.count('o') - parts.count('f') - parts.count('x')
+            inst_info['args'] = sum(parts.count(c) for c in 'rilj')
 
             # figure out sizes (for shift amounts)
             sizes = []
@@ -146,8 +146,8 @@ class Assembler:
                 arg, color = next(text_part_iter)
                 val = self.parse_part(kind, inst_info, pc, arg)
 
-                # check immediate or branch size
-                if kind in ['l', 'j', 'i']:
+                if kind in ['l', 'i']:
+                    # check 2's complement immediate or branch (offset) size
                     if val >= 2**(size-1) or val < -2**(size-1):
                         self.report_err(
                             "Immediate/Label out of range",
@@ -155,6 +155,13 @@ class Assembler:
                         )
                     # fit negative values into given # of bits
                     val = val % 2**size
+                elif kind == 'j':
+                    # check absolute address size
+                    if val >= 2**(size):
+                        self.report_err(
+                            "Label out of range",
+                            "{}-bit space, but {} >= 2^{}".format(size, val, size)
+                        )
             else:
                 # other kinds ('x', funccode) do not
                 val = self.parse_part(kind, inst_info, pc)
@@ -212,7 +219,7 @@ class Assembler:
         elif type == 'l' and arg in self.labels:
             # offset from pc, so store instruction count - pc
             return self.labels[arg] - pc
-        elif type == 'x':  # unused - fill w/ zero bits
+        elif type in 'xyz':  # unused - fill w/ zero bits
             return 0
         else:
             self.report_err("Invalid instruction argument", f"{arg} - type {type}")
