@@ -288,7 +288,7 @@ class Assembler:
         header += "-" * len(header) + "\n"
 
         ret = header
-        for inst in instructions:
+        for pc, inst in enumerate(instructions):
             inst_str = " ".join(part[0] for part in inst.text_parts)
             # Pad to 20 chars with spaces.
             # (Pre-compute because don't want to count added <span> chars when colorized.)
@@ -313,11 +313,11 @@ class Assembler:
 
             insthex = "{:04x}".format(inst.binary)
 
-            if inst.lineno in linelabels:
-                ret += linelabels[inst.lineno] + ":\n"
+            if pc in linelabels:
+                ret += linelabels[pc] + ":\n"
 
             # (Can't use format string justification because of added <span> chars.)
-            ret += "{:3}: {}  {}  {}\n".format(inst.lineno, inst_str, instbinstr, insthex)
+            ret += "{:3}: {}  {}  {}\n".format(pc, inst_str, instbinstr, insthex)
 
         return ret
 
