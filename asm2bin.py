@@ -10,13 +10,13 @@ import sys
 from assembler import Assembler, AssemblerException
 
 
-def printmsg(msgtuple, color="0;36"):
+def printmsg(msgtuple: tuple[str, str], color: str = "0;36") -> None:
     msg, data = msgtuple
     print("[{}m{}:[m {}".format(color, msg, data))
     print()
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 3 or len(sys.argv) > 5:
         print("Usage: {} [--logisim|--256sim] CONFIGFILE FILE.asm FILEOUT0 FILEOUT1".format(sys.argv[0]), file=sys.stderr)
         print(" -or-  {} [--logisim|--256sim] CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin".format(sys.argv[0]), file=sys.stderr)
