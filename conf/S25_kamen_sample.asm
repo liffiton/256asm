@@ -4,6 +4,7 @@
   sub $2 $3
   rand $4
 label1:
+  in $5 $4
   lb $5 $4
   sb $4 $5
   seti $6 127
