@@ -86,7 +86,7 @@
       </div>
     </div>
     <footer class="footer">
-      <p>Download command line version: <a href="/dl/{{name}}2bin.zip">{{name}}2bin</a></p>
+      <p>Download command line version: <a href="/dl/{{zipfilename}}">{{zipfilename}}</a></p>
       <p>Source: <a href="https://github.com/liffiton/256asm">256asm on Github</a></p>
     </footer>
   </div>

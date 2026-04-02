@@ -11,7 +11,6 @@ import zipfile
 from assembler import Assembler, AssemblerException
 from bottle import post, request, route, run, static_file, template
 
-
 # Parse/check commandline arguments
 if len(sys.argv) < 2:
     print("Usage: asmweb.py CONFIGFILE [PORT]", file=sys.stderr)
@@ -24,6 +23,8 @@ if not os.path.exists(configfile):
     sys.exit(1)
 assembler = Assembler(configfile)
 
+zipfilename = '{}2bin.zip'.format(assembler.name.replace(" ", ""))
+
 if len(sys.argv) > 2:
     port = int(sys.argv[2])
 else:
@@ -35,6 +36,7 @@ def index():
     return template(
         'index',
         name=assembler.name,
+        zipfilename=zipfilename,
         samplefile=assembler.samplefile,
         instructions=assembler.instructions,
         reg_prefix=assembler.reg_prefix
@@ -53,7 +55,6 @@ def static(filename):
 
 @route('/dl/<filename>')
 def download(filename):
-    zipfilename = '{}2bin.zip'.format(assembler.name)
     assert(filename == zipfilename)
     with zipfile.ZipFile(zipfilename, 'w') as zip:
         zip.write('asm2bin.py')
