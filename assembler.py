@@ -68,7 +68,7 @@ class Assembler:
         self.configfile = PurePath(configfile)
 
         config = configparser.ConfigParser()
-        config.read(self.configfile)
+        config.read(self.configfile, encoding='utf-8')
 
         self.name = config.get('general', 'name')
         self.inst_size = config.getint('general', 'inst_size')
