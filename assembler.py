@@ -107,6 +107,7 @@ class Assembler:
                 self.instructions[inst]["funccode"] = int(funccode)
 
         self.report_commas = True
+        self.value_swaps: dict[str, dict[int, int]] = defaultdict(dict)
 
         self.palette = [
             "#6D993B",
@@ -147,6 +148,10 @@ class Assembler:
 
     def register_info_callback(self, info_callback: InfoCallback) -> None:
         self.info_callback = info_callback
+
+    def add_swap(self, kind: str, v1: int, v2: int) -> None:
+        self.value_swaps[kind][v1] = v2
+        self.value_swaps[kind][v2] = v1
 
     def assemble_instruction(self, line: ASMLine, pc: int) -> Instruction:
         """Produce the binary encoding of one instruction."""
@@ -203,6 +208,9 @@ class Assembler:
                 # other kinds ('x', funccode) do not
                 val = self.parse_part(kind, inst_info, pc)
                 color = "#999999"
+
+            # Apply swaps given on cmdline
+            val = self.value_swaps.get(kind, {}).get(val, val)
 
             # Convert to binary; rjust() adds leading 0s if needed.
             bin_str = bin(val)[2:].rjust(size, "0")

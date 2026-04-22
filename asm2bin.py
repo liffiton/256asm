@@ -4,6 +4,7 @@ CS256 ISA Assembler: Command-line interface
 Author: Mark Liffiton
 """
 
+import argparse
 import os
 import sys
 
@@ -12,52 +13,70 @@ from assembler import Assembler, AssemblerException
 
 def printmsg(msgtuple: tuple[str, str], color: str = "0;36") -> None:
     msg, data = msgtuple
-    print("[{}m{}:[m {}".format(color, msg, data))
+    print(f"[{color}m{msg}: [0m{data}")
     print()
 
 
-def main() -> None:
-    if len(sys.argv) < 3 or len(sys.argv) > 5:
-        print(
-            "Usage: {} [--logisim|--256sim] CONFIGFILE FILE.asm FILEOUT0 FILEOUT1".format(
-                sys.argv[0]
-            ),
-            file=sys.stderr,
+def parse_swap(s: str) -> tuple[str, int, int]:
+    try:
+        kind, vals = s.split(":")
+        v1, v2 = map(int, vals.split(","))
+        return kind, v1, v2
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            "Swap must be in format KIND:V1,V2 (e.g., r:5,6)"
         )
-        print(
-            " -or-  {} [--logisim|--256sim] CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin".format(
-                sys.argv[0]
-            ),
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
-    if sys.argv[1] == "--logisim":
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="CS256 ISA Assembler")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--logisim", action="store_true", help="Output Logisim image format"
+    )
+    group.add_argument(
+        "--256sim",
+        dest="cpusim",
+        action="store_true",
+        help="Output 256sim image format",
+    )
+
+    parser.add_argument(
+        "--swap",
+        action="append",
+        type=parse_swap,
+        help="Value swap in format KIND:V1,V2 (e.g., 'r:1,2')",
+    )
+
+    parser.add_argument("configfile", help="Assembler config file")
+    parser.add_argument("asmfile", help="Assembly source file")
+    parser.add_argument("outfiles", nargs="*", help="Output files")
+
+    args = parser.parse_args()
+
+    # Determine format
+    if args.logisim:
         format = "logisim"
-        del sys.argv[1]
-    elif sys.argv[1] == "--256sim":
+    elif args.cpusim:
         format = "256sim"
-        del sys.argv[1]
     else:
-        # default
         format = "bin"
 
-    configfile = sys.argv[1]
-    if not os.path.exists(configfile):
-        print("File not found: " + configfile, file=sys.stderr)
+    # Validate files
+    if not os.path.exists(args.configfile):
+        print("File not found: " + args.configfile, file=sys.stderr)
         sys.exit(1)
 
-    filename = sys.argv[2]
-    if not os.path.exists(filename):
-        print("File not found: " + filename, file=sys.stderr)
+    if not os.path.exists(args.asmfile):
+        print("File not found: " + args.asmfile, file=sys.stderr)
         sys.exit(1)
 
-    if len(sys.argv) > 3:
-        outfiles = sys.argv[3:]
+    # Determine output files
+    if args.outfiles:
+        outfiles = args.outfiles
     else:
-        # produce either .bin or .0.bin and .1.bin from the filename given
-        # works well for drag-and-drop in Windows
-        basename = os.path.splitext(filename)[0]
+        basename = os.path.splitext(args.asmfile)[0]
         if format == "256sim" or format == "logisim":
             outfiles = [f"{basename}.bin"]
         else:
@@ -65,15 +84,18 @@ def main() -> None:
 
     print()  # blank line
 
-    a = Assembler(configfile, info_callback=printmsg)
+    a = Assembler(args.configfile, info_callback=printmsg)
+
+    if args.swap:
+        for kind, v1, v2 in args.swap:
+            a.add_swap(kind, v1, v2)
+
     try:
-        a.assemble_file(filename, format, outfiles)
+        a.assemble_file(args.asmfile, format, outfiles)
     except AssemblerException as e:
         printmsg(
             (e.msg, "{}\nLine {}: {}".format(e.data, e.lineno, e.inst)), color="1;31"
         )
-
-    # raw_input("Done.  Press enter to continue.")  # pause
 
 
 if __name__ == "__main__":
