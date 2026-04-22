@@ -18,8 +18,18 @@ def printmsg(msgtuple: tuple[str, str], color: str = "0;36") -> None:
 
 def main() -> None:
     if len(sys.argv) < 3 or len(sys.argv) > 5:
-        print("Usage: {} [--logisim|--256sim] CONFIGFILE FILE.asm FILEOUT0 FILEOUT1".format(sys.argv[0]), file=sys.stderr)
-        print(" -or-  {} [--logisim|--256sim] CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin".format(sys.argv[0]), file=sys.stderr)
+        print(
+            "Usage: {} [--logisim|--256sim] CONFIGFILE FILE.asm FILEOUT0 FILEOUT1".format(
+                sys.argv[0]
+            ),
+            file=sys.stderr,
+        )
+        print(
+            " -or-  {} [--logisim|--256sim] CONFIGFILE FILE.asm # will create FILE.0.bin and FILE.1.bin".format(
+                sys.argv[0]
+            ),
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     if sys.argv[1] == "--logisim":
@@ -51,7 +61,7 @@ def main() -> None:
         if format == "256sim" or format == "logisim":
             outfiles = [f"{basename}.bin"]
         else:
-            outfiles = [f"{basename}.{i}.bin" for i in (0,1)]
+            outfiles = [f"{basename}.{i}.bin" for i in (0, 1)]
 
     print()  # blank line
 
@@ -59,7 +69,9 @@ def main() -> None:
     try:
         a.assemble_file(filename, format, outfiles)
     except AssemblerException as e:
-        printmsg( (e.msg, "{}\nLine {}: {}".format(e.data, e.lineno, e.inst)), color="1;31" )
+        printmsg(
+            (e.msg, "{}\nLine {}: {}".format(e.data, e.lineno, e.inst)), color="1;31"
+        )
 
     # raw_input("Done.  Press enter to continue.")  # pause
 

@@ -23,7 +23,7 @@ if not os.path.exists(configfile):
     sys.exit(1)
 assembler = Assembler(configfile)
 
-zipfilename = '{}2bin.zip'.format(assembler.name.replace(" ", ""))
+zipfilename = "{}2bin.zip".format(assembler.name.replace(" ", ""))
 
 if len(sys.argv) > 2:
     port = int(sys.argv[2])
@@ -31,55 +31,55 @@ else:
     port = 8080
 
 
-@route('/')
+@route("/")
 def index():
     return template(
-        'index',
+        "index",
         name=assembler.name,
         zipfilename=zipfilename,
         samplefile=assembler.samplefile,
         instructions=assembler.instructions,
-        reg_prefix=assembler.reg_prefix
+        reg_prefix=assembler.reg_prefix,
     )
 
 
-@route('/conf/<filename>')
+@route("/conf/<filename>")
 def conf(filename):
-    return static_file(filename, root='conf/')
+    return static_file(filename, root="conf/")
 
 
-@route('/static/<filename>')
+@route("/static/<filename>")
 def static(filename):
-    return static_file(filename, root='static/')
+    return static_file(filename, root="static/")
 
 
-@route('/dl/<filename>')
+@route("/dl/<filename>")
 def download(filename):
-    assert(filename == zipfilename)
-    with zipfile.ZipFile(zipfilename, 'w') as zip:
-        zip.write('asm2bin.py')
-        zip.write('assembler.py')
+    assert filename == zipfilename
+    with zipfile.ZipFile(zipfilename, "w") as zip:
+        zip.write("asm2bin.py")
+        zip.write("assembler.py")
         zip.write(assembler.configfile)
         zip.write(assembler.samplefile)
-        zip.write('README.md')
-    return static_file(zipfilename, root='.', download=True)
+        zip.write("README.md")
+    return static_file(zipfilename, root=".", download=True)
 
 
-@post('/assemble/')
+@post("/assemble/")
 def assemble():
     asm = request.body.read().decode()
-    lines = asm.split('\n')
+    lines = asm.split("\n")
 
     out = {}
-    out['messages'] = []
+    out["messages"] = []
 
-    assembler.register_info_callback(out['messages'].append)
+    assembler.register_info_callback(out["messages"].append)
 
     try:
         instructions = assembler.assemble_lines(lines)
-        out['code'] = assembler.prettyprint_assembly(instructions, colorize=True)
+        out["code"] = assembler.prettyprint_assembly(instructions, colorize=True)
         binary = [inst.binary for inst in instructions]
-        out['bin'] = " ".join("{:04x}".format(word) for word in binary)
+        out["bin"] = " ".join("{:04x}".format(word) for word in binary)
 
         upperbytes = []
         lowerbytes = []
@@ -87,14 +87,16 @@ def assemble():
             upperbytes.append(word // 256)
             lowerbytes.append(word % 256)
 
-        out['upper'] = " ".join("{:02x}".format(byte) for byte in upperbytes)
-        out['lower'] = " ".join("{:02x}".format(byte) for byte in lowerbytes)
+        out["upper"] = " ".join("{:02x}".format(byte) for byte in upperbytes)
+        out["lower"] = " ".join("{:02x}".format(byte) for byte in lowerbytes)
 
     except AssemblerException as e:
-        out['error'] = {key: getattr(e, key) for key in ['msg', 'data', 'lineno', 'inst']}
+        out["error"] = {
+            key: getattr(e, key) for key in ["msg", "data", "lineno", "inst"]
+        }
 
     return out
 
 
 # Launch the server for external access
-run(host='0.0.0.0', port=port)
+run(host="0.0.0.0", port=port)
