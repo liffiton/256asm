@@ -98,5 +98,5 @@ def assemble():
     return out
 
 
-# Launch the server for external access
-run(host="0.0.0.0", port=port)
+# Launch the server for localhost access (use reverse proxy for public access)
+run(host="127.0.0.1", port=port)
