@@ -3,10 +3,10 @@ CS256 ISA Assembler
 Author: Mark Liffiton
 """
 
-from collections import defaultdict
-from collections.abc import Callable, Sequence
 import configparser
 import re
+from collections import defaultdict
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import PurePath
 from typing import Any, TypeAlias, TypedDict
@@ -31,9 +31,9 @@ class AssemblerException(Exception):
     def __str__(self) -> str:
         ret = self.msg
         if self.data:
-            ret += ": {}".format(self.data)
+            ret += f": {self.data}"
         if self.inst:
-            ret += "\n  In line {}: {}".format(self.lineno, self.inst)
+            ret += f"\n  In line {self.lineno}: {self.inst}"
         return ret
 
 
@@ -193,7 +193,7 @@ class Assembler:
                     if val >= 2 ** (size - 1) or val < -(2 ** (size - 1)):
                         self.report_err(
                             "Immediate/Label out of range",
-                            "{}-bit space, but |{}| > 2^{}".format(size, val, size - 1),
+                            f"{size}-bit space, but |{val}| > 2^{size - 1}",
                         )
                     # fit negative values into given # of bits
                     val = val % 2**size
@@ -202,7 +202,7 @@ class Assembler:
                     if val >= 2 ** (size):
                         self.report_err(
                             "Label out of range",
-                            "{}-bit space, but {} >= 2^{}".format(size, val, size),
+                            f"{size}-bit space, but {val} >= 2^{size}",
                         )
             else:
                 # other kinds ('x', funccode) do not
@@ -252,7 +252,7 @@ class Assembler:
         elif (
             type == "r"
             and arg
-            and re.match(r"^{}\d+$".format(re.escape(self.reg_prefix)), arg)
+            and re.match(rf"^{re.escape(self.reg_prefix)}\d+$", arg)
         ):
             regindex = int(arg[1:])
             if regindex > self.max_reg:
@@ -316,7 +316,7 @@ class Assembler:
             else:
                 # Uh oh...
                 self.report_inf(
-                    "Invalid line (ignoring)", "{}: {}".format(lineno, line)
+                    "Invalid line (ignoring)", f"{lineno}: {line}"
                 )
 
         return instructions
@@ -376,13 +376,13 @@ class Assembler:
                     " " * padding_len
                 )
 
-            insthex = "{:04x}".format(inst.binary)
+            insthex = f"{inst.binary:04x}"
 
             if pc in linelabels:
                 ret += linelabels[pc] + ":\n"
 
             # (Can't use format string justification because of added <span> chars.)
-            ret += "{:3}: {}  {}  {}\n".format(pc, inst_str, instbinstr, insthex)
+            ret += f"{pc:3}: {inst_str}  {instbinstr}  {insthex}\n"
 
         return ret
 
@@ -398,12 +398,12 @@ class Assembler:
         )
         with open(filename, "w") as f:
             f.write(file_header)
-            f.write(" ".join("{:04x}".format(word) for word in words))
+            f.write(" ".join(f"{word:04x}" for word in words))
 
     def output_sim_bin(self, filename: str, words: list[int]) -> None:
         """Create a 256sim memory image file for the given bytes."""
         with open(filename, "w") as f:
-            f.write(" ".join("{:04x}".format(word) for word in words))
+            f.write(" ".join(f"{word:04x}" for word in words))
             f.write("\n")
 
     def assemble_file(self, filename: str, format: str, outfiles: list[str]) -> None:

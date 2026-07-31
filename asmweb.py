@@ -18,7 +18,7 @@ if len(sys.argv) < 2:
 
 configfile = sys.argv[1]
 if not os.path.exists(configfile):
-    print("File not found: {}".format(configfile), file=sys.stderr)
+    print(f"File not found: {configfile}", file=sys.stderr)
     print("Usage: asmweb.py CONFIGFILE [PORT]", file=sys.stderr)
     sys.exit(1)
 assembler = Assembler(configfile)
@@ -79,7 +79,7 @@ def assemble():
         instructions = assembler.assemble_lines(lines)
         out["code"] = assembler.prettyprint_assembly(instructions, colorize=True)
         binary = [inst.binary for inst in instructions]
-        out["bin"] = " ".join("{:04x}".format(word) for word in binary)
+        out["bin"] = " ".join(f"{word:04x}" for word in binary)
 
         upperbytes = []
         lowerbytes = []
@@ -87,8 +87,8 @@ def assemble():
             upperbytes.append(word // 256)
             lowerbytes.append(word % 256)
 
-        out["upper"] = " ".join("{:02x}".format(byte) for byte in upperbytes)
-        out["lower"] = " ".join("{:02x}".format(byte) for byte in lowerbytes)
+        out["upper"] = " ".join(f"{byte:02x}" for byte in upperbytes)
+        out["lower"] = " ".join(f"{byte:02x}" for byte in lowerbytes)
 
     except AssemblerException as e:
         out["error"] = {

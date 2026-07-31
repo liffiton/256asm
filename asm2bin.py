@@ -13,7 +13,7 @@ from assembler import Assembler, AssemblerException
 
 def printmsg(msgtuple: tuple[str, str], color: str = "0;36") -> None:
     msg, data = msgtuple
-    print(f"[{color}m{msg}: [0m{data}")
+    print(f"\x1b[{color}m{msg}: \x1b[0m{data}")
     print()
 
 
@@ -94,7 +94,7 @@ def main() -> None:
         a.assemble_file(args.asmfile, format, outfiles)
     except AssemblerException as e:
         printmsg(
-            (e.msg, "{}\nLine {}: {}".format(e.data, e.lineno, e.inst)), color="1;31"
+            (e.msg, f"{e.data}\nLine {e.lineno}: {e.inst}"), color="1;31"
         )
 
 
