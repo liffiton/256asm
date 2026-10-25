@@ -55,7 +55,7 @@ def static(filename):
 
 @route("/dl/<filename>")
 def download(filename):
-    assert filename == zipfilename
+    assert filename == zipfilename, f"/dl/{filename} does not match configured name {zipfilename}"
     with zipfile.ZipFile(zipfilename, "w") as zip:
         zip.write("asm2bin.py")
         zip.write("assembler.py")
